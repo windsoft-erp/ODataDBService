@@ -1,5 +1,5 @@
 # ODataDBService
-OData DB Service 
+Simple OData DB Service (currently supporting only select type queries)
 
 ### Requirements 
 - Docker
