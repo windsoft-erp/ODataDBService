@@ -67,6 +67,21 @@ namespace ODataDBService.Controllers
             return new JsonResult(result);
         }
 
+        [HttpDelete("{tableName}({key})")]
+        public async Task<IActionResult> DeleteAsync(string tableName, string key)
+        {
+            var query = _oDataToSqlConverter.ConvertToSQLDelete(tableName, key, _connectionString);
+            await using var conn = new SqlConnection(_connectionString);
+            var affectedRows = await conn.ExecuteAsync(query.Item1, query.Item2);
+
+            if (affectedRows==0)
+            {
+                return NotFound();
+            }
+
+            return Ok();
+        }
+
         private string BuildNextLink(string tableName,
             string select,
             string filter,
@@ -84,6 +99,43 @@ namespace ODataDBService.Controllers
                 .SetQueryParam("skip", skip+top);
 
             return nextLink;
+        }
+    }
+
+    public static class ODataToSQLConverterExtension
+    {
+        public static (string, DynamicParameters) ConvertToSQLDelete(this IODataToSqlConverter oDataToSqlConverter, string tableName, string key, string connectionString)
+        {
+            using var connection = new SqlConnection(connectionString);
+            var tableInfo = connection.QueryFirstOrDefault<TableInfo>(
+                @"SELECT 
+            t.TABLE_NAME as TableName,
+            c.COLUMN_NAME as PrimaryKey
+        FROM 
+            INFORMATION_SCHEMA.TABLES t
+            INNER JOIN INFORMATION_SCHEMA.COLUMNS c
+                ON c.TABLE_NAME = t.TABLE_NAME
+        WHERE 
+            t.TABLE_NAME = @TableName 
+            AND c.COLUMN_KEY = 'PRI'",
+                new { TableName = tableName });
+
+            if (tableInfo==null)
+            {
+                throw new ArgumentException($"Could not find primary key for table {tableName}");
+            }
+
+            var sql = $"DELETE FROM {tableInfo.TableName} WHERE {tableInfo.PrimaryKey} = @{tableInfo.PrimaryKey}";
+            var parameters = new DynamicParameters();
+            parameters.Add(tableInfo.PrimaryKey, key);
+
+            return (sql, parameters);
+        }
+
+        private class TableInfo
+        {
+            public string? TableName { get; set; }
+            public string? PrimaryKey { get; set; }
         }
     }
 }
