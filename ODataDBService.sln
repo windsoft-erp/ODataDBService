@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33530.505
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ODataDBService", "ODataDBService\ODataDBService.csproj", "{34F69541-5CD3-429D-B0A1-67ABA6044CDB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ODataDBTester", "ODataDBTester\ODataDBTester.csproj", "{CBEB80F4-7D1B-4DFF-8178-D40C5119A511}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{34F69541-5CD3-429D-B0A1-67ABA6044CDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34F69541-5CD3-429D-B0A1-67ABA6044CDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34F69541-5CD3-429D-B0A1-67ABA6044CDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34F69541-5CD3-429D-B0A1-67ABA6044CDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBEB80F4-7D1B-4DFF-8178-D40C5119A511}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBEB80F4-7D1B-4DFF-8178-D40C5119A511}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBEB80F4-7D1B-4DFF-8178-D40C5119A511}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBEB80F4-7D1B-4DFF-8178-D40C5119A511}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F17878F0-1DC4-4381-9672-38BD56BF46BE}
+	EndGlobalSection
+EndGlobal
