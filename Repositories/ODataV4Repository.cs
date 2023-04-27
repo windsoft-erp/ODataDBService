@@ -123,27 +123,35 @@ namespace ODataDBService.Repositories
         {
             using var connection = new SqlConnection(_connectionString);
 
-            var tableInfo = new TableInfo
-            {
-                TableName = tableName,
-                PrimaryKey = connection.QueryFirstOrDefault<string>(
-                    @"SELECT COLUMN_NAME
-                    FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-                    WHERE TABLE_NAME = @TableName 
-                    AND CONSTRAINT_NAME LIKE 'PK%'",
-                    new { TableName = tableName })
-            };
+            var tableInfo = new TableInfo { TableName = tableName };
 
-            if (tableInfo.PrimaryKey == null)
-            {
-                throw new ArgumentException($"Could not find primary key for table {tableName}");
-            }
-
-            tableInfo.ColumnNames = connection.Query<string>(
-                @"SELECT COLUMN_NAME
+            var sql = @"
+                SELECT COLUMN_NAME, CONSTRAINT_NAME
+                FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+                WHERE TABLE_NAME = @TableName;
+        
+                SELECT COLUMN_NAME
                 FROM INFORMATION_SCHEMA.COLUMNS
-                WHERE TABLE_NAME = @TableName",
-                new { TableName = tableName });
+                WHERE TABLE_NAME = @TableName;
+            ";
+
+            using (var multi = connection.QueryMultiple(sql, new { TableName = tableName }))
+            {
+                var keyColumnUsage = multi.Read<dynamic>().ToList();
+                var columns = multi.Read<string>().ToList();
+
+                tableInfo.PrimaryKey = keyColumnUsage
+                    .Where(x => ((string)x.CONSTRAINT_NAME).StartsWith("PK"))
+                    .Select(x => (string)x.COLUMN_NAME)
+                    .FirstOrDefault();
+
+                if (tableInfo.PrimaryKey == null)
+                {
+                    throw new ArgumentException($"Could not find primary key for table {tableName}");
+                }
+
+                tableInfo.ColumnNames = columns;
+            }
 
             return tableInfo;
         }

@@ -1,8 +1,6 @@
 using Flurl;
 using Microsoft.AspNetCore.Mvc;
-using ODataDBService.Models;
 using ODataDBService.Services;
-using System.Net.Mime;
 using System.Text.Json;
 
 namespace ODataDBService.Controllers
@@ -33,7 +31,18 @@ namespace ODataDBService.Controllers
         {
             return _requestHandler.HandleAsync(
                 () => _oDataV4Service.QueryAsync(tableName, select, filter, orderby, top, skip),
-                result => Ok(result),
+                result =>
+                {
+                    var isLastPage = result.Count <= top;
+                    result.NextLink = isLastPage ? null : Url.Link("QueryRecords", new { tableName })
+                        .SetQueryParam("$select", select)
+                        .SetQueryParam("$filter", filter)
+                        .SetQueryParam("$orderby", orderby)
+                        .SetQueryParam("$top", top)
+                        .SetQueryParam("$skip", skip + top);
+
+                    return Ok(result);
+                },
                 "Query records");
         }
 
@@ -149,5 +158,4 @@ namespace ODataDBService.Controllers
     //        }
     //    }
     //}
-}
 }

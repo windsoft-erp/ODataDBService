@@ -1,6 +1,5 @@
 ﻿using ODataDBService.Models;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace ODataDBService.Repositories
 {
