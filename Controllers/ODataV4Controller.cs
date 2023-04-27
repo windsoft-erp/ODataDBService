@@ -72,6 +72,13 @@ namespace ODataDBService.Controllers
                 result => Ok(result),
                 "Update record");
         }
+
+        [HttpPost("invalidate-cache/{tableName}")]
+        public IActionResult InvalidateTableInfoCache(string tableName)
+        {
+            _oDataV4Service.InvalidateTableInfoCache(tableName);
+            return Ok(new { message = $"Table info cache invalidated for table '{tableName}'." });
+        }
     }
 
     // Note: The ExecuteStoredProcedure method should also be refactored to use the service and repository pattern.

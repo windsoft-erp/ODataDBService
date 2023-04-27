@@ -1,5 +1,5 @@
 ﻿using ODataDBService.Models;
-using ODataDBService.Repositories;
+using ODataDBService.Services.Repositories;
 using System.Text.Json;
 
 namespace ODataDBService.Services
@@ -31,6 +31,11 @@ namespace ODataDBService.Services
         public async Task<bool> UpdateAsync(string tableName, string key, JsonElement data)
         {
             return await _oDataV4Repository.UpdateAsync(tableName, key, data);
+        }
+
+        public void InvalidateTableInfoCache(string tableName) 
+        {
+            _oDataV4Repository.InvalidateTableInfoCache(tableName);    
         }
     }
 }

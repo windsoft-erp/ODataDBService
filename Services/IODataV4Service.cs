@@ -9,5 +9,6 @@ namespace ODataDBService.Services
         Task<bool> DeleteAsync(string tableName, string key);
         Task<bool> InsertAsync(string tableName, JsonElement data);
         Task<bool> UpdateAsync(string tableName, string key, JsonElement data);
+        void InvalidateTableInfoCache(string tableName);
     }
 }

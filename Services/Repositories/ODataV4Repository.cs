@@ -5,18 +5,21 @@ using System.Data.SqlClient;
 using System.Text.Json;
 using ODataDBService.Extensions;
 using System.Text;
+using System.Collections.Concurrent;
 
-namespace ODataDBService.Repositories
+namespace ODataDBService.Services.Repositories
 {
     public class ODataV4Repository : IODataV4Repository
     {
         private readonly string _connectionString;
         private readonly IODataToSqlConverter _oDataToSqlConverter;
+        private readonly ConcurrentDictionary<string, TableInfo> _tableInfoCache;
 
         public ODataV4Repository(IConfiguration configuration, IODataToSqlConverter oDataToSqlConverter)
         {
             _oDataToSqlConverter = oDataToSqlConverter ?? throw new ArgumentNullException(nameof(oDataToSqlConverter));
             _connectionString = configuration?.GetConnectionString("Sql") ?? throw new ArgumentNullException(nameof(configuration));
+            _tableInfoCache = new ConcurrentDictionary<string, TableInfo>();
         }
 
         public async Task<ODataQueryResult> QueryAsync(string tableName, string select, string filter, string orderby, int top, int skip)
@@ -119,8 +122,18 @@ namespace ODataDBService.Repositories
             return result > 0;
         }
 
+        public void InvalidateTableInfoCache(string tableName)
+        {
+            _tableInfoCache.TryRemove(tableName, out _);
+        }
+
         private TableInfo GetTableInfo(string tableName)
         {
+            if (_tableInfoCache.TryGetValue(tableName, out var cachedTableInfo))
+            {
+                return cachedTableInfo;
+            }
+
             using var connection = new SqlConnection(_connectionString);
 
             var tableInfo = new TableInfo { TableName = tableName };
@@ -153,6 +166,7 @@ namespace ODataDBService.Repositories
                 tableInfo.ColumnNames = columns;
             }
 
+            _tableInfoCache.TryAdd(tableName, tableInfo);
             return tableInfo;
         }
     }
