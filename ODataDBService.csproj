@@ -9,16 +9,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data Access Layer\**" />
+    <Compile Remove="NewFolder\**" />
+    <Content Remove="Data Access Layer\**" />
+    <Content Remove="NewFolder\**" />
+    <EmbeddedResource Remove="Data Access Layer\**" />
+    <EmbeddedResource Remove="NewFolder\**" />
+    <None Remove="Data Access Layer\**" />
+    <None Remove="NewFolder\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="DynamicODataToSQL" Version="1.0.7" />
     <PackageReference Include="Flurl" Version="3.0.7" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Data Access Layer\" />
-  </ItemGroup>
-
-</Project>
+  </ItemGroup></Project>
