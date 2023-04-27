@@ -3,9 +3,9 @@ using DynamicODataToSQL;
 using ODataDBService.Models;
 using System.Data.SqlClient;
 using System.Text.Json;
-using ODataDBService.Extensions;
 using System.Text;
 using System.Collections.Concurrent;
+using ODataDBService.Services.Extensions;
 
 namespace ODataDBService.Services.Repositories
 {

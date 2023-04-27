@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace ODataDBService.Extensions
+namespace ODataDBService.Services.Extensions
 {
     public static class JsonElementExtensions
     {
