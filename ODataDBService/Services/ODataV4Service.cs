@@ -15,7 +15,18 @@ namespace ODataDBService.Services
 
         public async Task<ODataQueryResult> QueryAsync(string tableName, string select, string filter, string orderby, int top, int skip)
         {
-            return await _oDataV4Repository.QueryAsync(tableName, select, filter, orderby, top, skip);
+            var queryResult = await _oDataV4Repository.QueryAsync(tableName, select, filter, orderby, top, skip);
+
+            var resultList = queryResult.ToList();
+            var count = resultList.Count;
+
+            var result = new ODataQueryResult
+            {
+                Count = count,
+                Value = resultList
+            };
+
+            return result;
         }
 
         public async Task<bool> DeleteAsync(string tableName, string key)
