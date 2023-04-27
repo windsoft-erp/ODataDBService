@@ -22,7 +22,7 @@ namespace ODataDBService.Services.Repositories
             _tableInfoCache = new ConcurrentDictionary<string, TableInfo>();
         }
 
-        public async Task<ODataQueryResult> QueryAsync(string tableName, string select, string filter, string orderby, int top, int skip)
+        public async Task<IEnumerable<dynamic>> QueryAsync(string tableName, string select, string filter, string orderby, int top, int skip)
         {
             var (query, queryParams) = _oDataToSqlConverter.ConvertToSQL(tableName,
                     new Dictionary<string, string>
@@ -38,15 +38,7 @@ namespace ODataDBService.Services.Repositories
             await using var conn = new SqlConnection(_connectionString);
             var rows = await conn.QueryAsync<dynamic>(query, queryParams).ConfigureAwait(false);
 
-            var resultList = rows.ToList();
-            var count = resultList.Count();
-            var result = new ODataQueryResult
-            {
-                Count = count,
-                Value = resultList
-            };
-
-            return result;
+            return rows;
         }
 
         public async Task<bool> DeleteAsync(string tableName, string key)
