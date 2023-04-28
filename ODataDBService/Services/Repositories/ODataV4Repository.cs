@@ -22,16 +22,17 @@ namespace ODataDBService.Services.Repositories
             _tableInfoCache = new ConcurrentDictionary<string, TableInfo>();
         }
 
-        public async Task<IEnumerable<dynamic>> QueryAsync(string tableName, string select, string filter, string orderby, int top, int skip)
+        public async Task<IEnumerable<dynamic>> QueryAsync(ODataQuery oDataQuery)
         {
-            var (query, queryParams) = _oDataToSqlConverter.ConvertToSQL(tableName,
+            var (query, queryParams) = _oDataToSqlConverter.ConvertToSQL(oDataQuery.TableName,
                     new Dictionary<string, string>
                     {
-                        { "select", select },
-                        { "filter", filter },
-                        { "orderby", orderby },
-                        { "top", (top + 1).ToString() },
-                        { "skip", skip.ToString() }
+                        { "select", oDataQuery.Select },
+                        { "filter", oDataQuery.Filter },
+                        { "apply", oDataQuery.Apply },
+                        { "orderby", oDataQuery.OrderBy },
+                        { "top", (oDataQuery.Top + 1).ToString() },
+                        { "skip", oDataQuery.Skip.ToString() },
                     }
                 );
 

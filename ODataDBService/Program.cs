@@ -1,5 +1,7 @@
 using DynamicODataToSQL;
 using DynamicODataToSQL.Interfaces;
+using ODataDBService.Services;
+using ODataDBService.Services.Repositories;
 using SqlKata.Compilers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +15,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IODataToSqlConverter, ODataToSqlConverter>();
 builder.Services.AddScoped<IEdmModelBuilder, EdmModelBuilder>();
 builder.Services.AddSingleton<Compiler>(new SqlServerCompiler { UseLegacyPagination = false });
+builder.Services.AddScoped<IODataV4Service, ODataV4Service>();
+builder.Services.AddScoped<IODataV4Repository, ODataV4Repository>();
+builder.Services.AddScoped<RequestHandler>(sp => new RequestHandler(sp.GetRequiredService<ILogger<RequestHandler>>()));
 
 var app = builder.Build();
 

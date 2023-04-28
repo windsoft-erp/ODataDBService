@@ -13,9 +13,9 @@ namespace ODataDBService.Services
             _oDataV4Repository = oDataV4Repository ?? throw new ArgumentNullException(nameof(oDataV4Repository));
         }
 
-        public async Task<ODataQueryResult> QueryAsync(string tableName, string select, string filter, string orderby, int top, int skip)
+        public async Task<ODataQueryResult> QueryAsync(ODataQuery query)
         {
-            var rows = await _oDataV4Repository.QueryAsync(tableName, select, filter, orderby, top, skip);
+            var rows = await _oDataV4Repository.QueryAsync(query);
             var resultList = rows.ToList();
             var count = resultList.Count();
             var result = new ODataQueryResult

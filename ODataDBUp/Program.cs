@@ -5,44 +5,89 @@ using System.Reflection;
 using Dapper;
 
 string connectionString = GetConnectionString();
-if (connectionString == null)
+if (connectionString==null)
 {
     Console.WriteLine("Connection string not found in configuration.");
     return;
 }
 
-Console.WriteLine("1. Deploy scripts to existing database.");
-Console.WriteLine("2. Drop the database and deploy scripts.");
-
-Console.WriteLine("Enter '1' or '2': ");
-var key = Console.ReadKey();
-Console.WriteLine();
-
-switch (key.KeyChar)
+while (true)
 {
-    case '1':
-        CreateDatabaseIfNotExists(connectionString);
-        DeployScripts(connectionString);
-        break;
-    case '2':
-        Console.WriteLine("WARNING: This will permanently delete the database and all data it contains.");
-        Console.WriteLine("Are you sure you want to continue? Enter 'yes' to confirm, or any other key to cancel: ");
-        var confirm = Console.ReadLine();
+    Console.Clear();
+    Console.ForegroundColor=ConsoleColor.Cyan;
+    Console.WriteLine("=== Database Management ===");
+    Console.ResetColor();
+    Console.WriteLine("1. Deploy scripts to existing database.");
+    Console.WriteLine("2. Drop the database and deploy scripts.");
+    Console.WriteLine("3. Exit");
+    Console.WriteLine();
+    Console.Write("Enter the option number: ");
 
-        if (confirm.ToLower() == "yes")
-        {
-            DropDatabase(connectionString);
-            CreateDatabaseIfNotExists(connectionString);
-            DeployScripts(connectionString);
-        }
-        else
-        {
-            Console.WriteLine("Operation cancelled.");
-        }
+    if (!int.TryParse(Console.ReadLine(), out int option))
+    {
+        Console.ForegroundColor=ConsoleColor.Yellow;
+        Console.WriteLine("Invalid input. Press any key to try again.");
+        Console.ResetColor();
+        Console.ReadKey();
+        continue;
+    }
+
+    if (option==3)
+    {
         break;
-    default:
-        Console.WriteLine("Invalid input.");
-        break;
+    }
+
+    try
+    {
+        switch (option)
+        {
+            case 1:
+                CreateDatabaseIfNotExists(connectionString);
+                DeployScripts(connectionString);
+                Console.ForegroundColor=ConsoleColor.Green;
+                Console.WriteLine("Operation completed successfully. Press any key to continue.");
+                Console.ResetColor();
+                Console.ReadKey();
+                break;
+            case 2:
+                Console.ForegroundColor=ConsoleColor.Red;
+                Console.WriteLine("WARNING: This will permanently delete the database and all data it contains.");
+                Console.ResetColor();
+                Console.Write("Are you sure you want to continue? Enter 'yes' to confirm, or any other key to cancel: ");
+                var confirm = Console.ReadLine();
+
+                if (confirm.ToLower()=="yes")
+                {
+                    DropDatabase(connectionString);
+                    CreateDatabaseIfNotExists(connectionString);
+                    DeployScripts(connectionString);
+                    Console.ForegroundColor=ConsoleColor.Green;
+                    Console.WriteLine("Operation completed successfully. Press any key to continue.");
+                    Console.ResetColor();
+                    Console.ReadKey();
+                }
+                else
+                {
+                    Console.WriteLine("Operation cancelled. Press any key to continue.");
+                    Console.ReadKey();
+                }
+                break;
+            default:
+                Console.ForegroundColor=ConsoleColor.Yellow;
+                Console.WriteLine("Invalid input. Press any key to try again.");
+                Console.ResetColor();
+                Console.ReadKey();
+                break;
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.ForegroundColor=ConsoleColor.Red;
+        Console.WriteLine($"An error occurred: {ex.Message}");
+        Console.ResetColor();
+        Console.WriteLine("Press any key to continue.");
+        Console.ReadKey();
+    }
 }
 
 static string GetConnectionString()
@@ -57,11 +102,23 @@ static void DropDatabase(string connectionString)
 {
     var builder = new SqlConnectionStringBuilder(connectionString);
     var databaseName = builder.InitialCatalog;
+    string masterConnectionString = connectionString.Replace(databaseName, "master");
 
-    using (var connection = new SqlConnection(connectionString))
+    using (var connection = new SqlConnection(masterConnectionString))
     {
         connection.Open();
-        connection.Execute($@"IF EXISTS (SELECT * FROM sys.databases WHERE name = '{databaseName}') DROP DATABASE [{databaseName}]");
+
+        // Get the list of active sessions for the database
+        var sessions = connection.Query<int>($"SELECT session_id FROM sys.dm_exec_sessions WHERE database_id = DB_ID('{databaseName}')");
+
+        // Kill the active sessions
+        foreach (var sessionId in sessions)
+        {
+            connection.Execute($"KILL {sessionId}");
+        }
+
+        // Drop the database
+        connection.Execute($"IF EXISTS (SELECT * FROM sys.databases WHERE name = '{databaseName}') DROP DATABASE [{databaseName}]");
     }
 }
 

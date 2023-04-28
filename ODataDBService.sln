@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ODataDBService", "ODataDBSe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ODataDBTester", "ODataDBTester\ODataDBTester.csproj", "{CBEB80F4-7D1B-4DFF-8178-D40C5119A511}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ODataDBUp", "ODataDBUp\ODataDBUp.csproj", "{215DAD2D-C8C7-462E-BCD9-616C9D2F6134}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ODataDBUp", "ODataDBUp\ODataDBUp.csproj", "{215DAD2D-C8C7-462E-BCD9-616C9D2F6134}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

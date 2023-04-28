@@ -9,6 +9,7 @@ CREATE TABLE [dbo].[Employees](
 	[HireDate] [date] NULL,
 	[City] [nvarchar](50) NULL,
 	[Country] [nvarchar](50) NULL,
+	[TotalOrders] [int] NOT NULL DEFAULT 0
  CONSTRAINT [PK_Employees] PRIMARY KEY CLUSTERED 
 (
 	[EmployeeID] ASC

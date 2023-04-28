@@ -1,5 +1,6 @@
 using Flurl;
 using Microsoft.AspNetCore.Mvc;
+using ODataDBService.Models;
 using ODataDBService.Services;
 using System.Text.Json;
 
@@ -25,18 +26,32 @@ namespace ODataDBService.Controllers
             string tableName,
             [FromQuery(Name = "$select")] string? select = null,
             [FromQuery(Name = "$filter")] string? filter = null,
+            [FromQuery(Name = "apply")] string? apply = null,
             [FromQuery(Name = "$orderby")] string? orderby = null,
             [FromQuery(Name = "$top")] int top = 10,
             [FromQuery(Name = "$skip")] int skip = 0)
         {
+
+            ODataQuery oDataQuery = new ODataQuery
+            {
+                TableName=tableName,
+                Select=select??string.Empty,
+                Filter=filter??string.Empty,
+                Apply=apply??string.Empty,
+                OrderBy=orderby??string.Empty,
+                Top=top,
+                Skip=skip
+            };
+
             return _requestHandler.HandleAsync(
-                () => _oDataV4Service.QueryAsync(tableName, select, filter, orderby, top, skip),
+                () => _oDataV4Service.QueryAsync(oDataQuery),
                 result =>
                 {
                     var isLastPage = result.Count <= top;
                     result.NextLink = isLastPage ? null : Url.Link("QueryRecords", new { tableName })
                         .SetQueryParam("$select", select)
                         .SetQueryParam("$filter", filter)
+                        .SetQueryParam("$apply", apply)
                         .SetQueryParam("$orderby", orderby)
                         .SetQueryParam("$top", top)
                         .SetQueryParam("$skip", skip + top);
@@ -46,7 +61,7 @@ namespace ODataDBService.Controllers
                 "Query records");
         }
 
-        [HttpDelete("{tableName}/{key}")]
+        [HttpDelete("{tableName}({key})")]
         public Task<IActionResult> DeleteAsync(string tableName, string key)
         {
             return _requestHandler.HandleAsync(
