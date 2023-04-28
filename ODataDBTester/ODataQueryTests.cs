@@ -36,7 +36,7 @@ namespace ODataV4Tests
             _oDataV4Repository=new ODataV4Repository(config, _oDataToSqlConverter);
             _oDataV4Service=new ODataV4Service(_oDataV4Repository);
             var logger = Mock.Of<ILogger<ODataV4Controller>>();
-            _controller=new ODataV4Controller(logger, _oDataV4Service);
+            //_controller=new ODataV4Controller(logger, _oDataV4Service);
             var httpContext = new Mock<HttpContext>();
             httpContext.Setup(x => x.Request.Scheme).Returns("http");
             httpContext.Setup(x => x.Request.Host).Returns(new HostString("localhost"));

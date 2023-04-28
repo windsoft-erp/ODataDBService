@@ -115,9 +115,9 @@ namespace ODataDBService.Services.Repositories
             return result > 0;
         }
 
-        public void InvalidateTableInfoCache(string tableName)
+        public bool InvalidateTableInfoCache(string tableName)
         {
-            _tableInfoCache.TryRemove(tableName, out _);
+            return _tableInfoCache.TryRemove(tableName, out _);
         }
 
         private TableInfo GetTableInfo(string tableName)
