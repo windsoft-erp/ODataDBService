@@ -9,28 +9,10 @@ public class ODataRequestHandlerFactory : IODataRequestHandlerFactory
         _serviceProvider=serviceProvider;
     }
 
-    public IQueryRequestHandler CreateQueryHandler()
-    {
-        return _serviceProvider.GetRequiredService<IQueryRequestHandler>();
-    }
-
-    public IDeleteRequestHandler CreateDeleteHandler()
-    {
-        return _serviceProvider.GetRequiredService<IDeleteRequestHandler>();
-    }
-
-    public IInsertRequestHandler CreateInsertHandler()
-    {
-        return _serviceProvider.GetRequiredService<IInsertRequestHandler>();
-    }
-
-    public IUpdateRequestHandler CreateUpdateHandler()
-    {
-        return _serviceProvider.GetRequiredService<IUpdateRequestHandler>();
-    }
-
-    public IInvalidateCacheRequestHandler CreateInvalidateCacheHandler()
-    {
-        return _serviceProvider.GetRequiredService<IInvalidateCacheRequestHandler>();
-    }
+    public IQueryRequestHandler CreateQueryHandler() => _serviceProvider.GetRequiredService<IQueryRequestHandler>();
+    public IDeleteRequestHandler CreateDeleteHandler() => _serviceProvider.GetRequiredService<IDeleteRequestHandler>();
+    public IInsertRequestHandler CreateInsertHandler() => _serviceProvider.GetRequiredService<IInsertRequestHandler>();
+    public IUpdateRequestHandler CreateUpdateHandler() => _serviceProvider.GetRequiredService<IUpdateRequestHandler>();
+    public IInvalidateCacheRequestHandler CreateInvalidateCacheHandler() =>_serviceProvider.GetRequiredService<IInvalidateCacheRequestHandler>();
+    public IBatchRequestHandler CreateBatchRequestHandler() => _serviceProvider.GetRequiredService<IBatchRequestHandler>(); 
 }

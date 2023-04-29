@@ -7,5 +7,6 @@
         IInsertRequestHandler CreateInsertHandler();
         IUpdateRequestHandler CreateUpdateHandler();
         IInvalidateCacheRequestHandler CreateInvalidateCacheHandler();
+        IBatchRequestHandler CreateBatchRequestHandler();
     }
 }

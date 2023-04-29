@@ -133,5 +133,44 @@ namespace ODataDBService.Controllers
         [HttpDelete("invalidate-cache/{tableName}")]
         public IActionResult InvalidateTableInfoCache(string tableName) =>
             _requestHandlerFactory.CreateInvalidateCacheHandler().Handle(tableName);
+
+        /// <summary>
+        /// Sends a batch of requests to the server.
+        /// </summary>
+        /// <remarks>
+        /// This method is used to send a batch of OData requests to the server, allowing multiple requests to be processed
+        /// in a single HTTP request. The requests are specified in the body of the HTTP request in the format of an OData
+        /// batch request.
+        /// </remarks>
+        /// <returns>
+        /// An IActionResult indicating the success or failure of the operation. The result will contain a list of
+        /// <see cref="BatchResponseContent"/> objects, each of which represents the response for a single request in the batch.
+        /// </returns>
+        /// <example>
+        /// This example demonstrates how to send a batch request to the server.
+        /// 
+        /// POST /$batch
+        /// Content-Type: multipart/mixed;boundary=batch_boundary
+        /// 
+        /// --batch_boundary
+        /// Content-Type: application/http
+        /// Content-Transfer-Encoding:binary
+        /// 
+        /// POST /api/orders HTTP/1.1
+        /// Content-Type: application/json
+        /// 
+        /// {"orderId":1,"customerId":1,"orderDate":"2023-04-29T00:00:00Z","totalAmount":123.45}
+        /// 
+        /// --batch_boundary
+        /// Content-Type: application/http
+        /// Content-Transfer-Encoding:binary
+        /// 
+        /// GET /api/customers?$filter=name eq 'John'
+        /// 
+        /// --batch_boundary--
+        /// </example>
+        [HttpPost("$batch")]
+        public Task<IActionResult> BatchAsync() => 
+            _requestHandlerFactory.CreateBatchRequestHandler().ProcessBatchRequestAsync(Request);
     }
 }
