@@ -6,15 +6,22 @@ using Moq;
 using ODataDBService.Controllers;
 using ODataDBService.Services.Repositories;
 using ODataDBService.Services;
-using DynamicODataToSQL.Interfaces;
 using SqlKata.Compilers;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using ODataDBService.Models;
+using Microsoft.Extensions.DependencyInjection;
+using ODataDBService.Controllers.Handlers.OData.Interfaces;
+using ODataDBService.Controllers.Handlers.OData;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using System.Net.Http;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Primitives;
 
-namespace ODataV4Tests
+namespace ODataDBTester.Tests
 {
     [TestFixture]
     public class ODataQueryTests
@@ -30,24 +37,29 @@ namespace ODataV4Tests
         public void Setup()
         {
             var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-            _edmModelBuilder= new EdmModelBuilder();    
-            _sqlServerCompiler=new SqlServerCompiler { UseLegacyPagination=false };
-            _oDataToSqlConverter=new ODataToSqlConverter(_edmModelBuilder, _sqlServerCompiler);
-            _oDataV4Repository=new ODataV4Repository(config, _oDataToSqlConverter);
-            _oDataV4Service=new ODataV4Service(_oDataV4Repository);
-            var logger = Mock.Of<ILogger<ODataV4Controller>>();
-            controller=new ODataV4Controller(logger, _oDataV4Service);
-            var httpContext = new Mock<HttpContext>();
-            httpContext.Setup(x => x.Request.Scheme).Returns("http");
-            httpContext.Setup(x => x.Request.Host).Returns(new HostString("localhost"));
+            _edmModelBuilder = new EdmModelBuilder();
+            _sqlServerCompiler = new SqlServerCompiler { UseLegacyPagination = false };
+            _oDataToSqlConverter = new ODataToSqlConverter(_edmModelBuilder, _sqlServerCompiler);
+            _oDataV4Repository = new ODataV4Repository(config, _oDataToSqlConverter);
+            _oDataV4Service = new ODataV4Service(_oDataV4Repository);
+            var logger = Mock.Of<ILogger<QueryRequestHandler>>();
 
-            var actionContext = new ActionContext(httpContext.Object, new RouteData(), new ControllerActionDescriptor());
+            var requestHandlerFactoryMock = new Mock<IODataRequestHandlerFactory>();
 
-            var urlHelper = Mock.Of<IUrlHelper>(x =>
-                x.ActionContext==actionContext&&
-                x.RouteUrl(It.IsAny<UrlRouteContext>())=="localhost");
+            var urlHelperMock = new Mock<IUrlHelper>();
+            var urlHelperFactoryMock = new Mock<IUrlHelperFactory>();
+            urlHelperFactoryMock.Setup(factory => factory.GetUrlHelper(It.IsAny<ActionContext>())).Returns(urlHelperMock.Object);
 
-            _controller.Url=urlHelper;
+            var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            httpContextAccessorMock.Setup(accessor => accessor.HttpContext).Returns(new DefaultHttpContext());
+
+            requestHandlerFactoryMock.Setup(factory => factory.CreateQueryHandler()).Returns(new QueryRequestHandler(logger, _oDataV4Service, httpContextAccessorMock.Object, urlHelperFactoryMock.Object));
+
+            _controller = new ODataV4Controller(requestHandlerFactoryMock.Object);
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContextAccessorMock.Object.HttpContext
+            };
         }
 
         [Test]
@@ -90,8 +102,15 @@ namespace ODataV4Tests
                 new Dictionary<string, object> {{"EmployeeID", 1}, {"FirstName", "Nancy"}, {"LastName", "Davolio"}, {"Title", "Sales Representative"}, {"BirthDate", new DateTime(1968, 12, 8)}, {"HireDate", new DateTime(1992, 5, 1)}, {"City", "Seattle"}, {"Country", "USA"}, {"TotalOrders", 0}}
             };
 
+            var queryString = new QueryCollection(new Dictionary<string, StringValues>()
+            {
+                { "$filter", new StringValues("FirstName eq 'Nancy'") }
+            });
+
+            _controller.HttpContext.Request.Query=queryString;
+
             // Act
-            var result = await _controller.QueryAsync(tableName, filter: "FirstName eq 'Nancy'");
+            var result = await _controller.QueryAsync(tableName);
 
             // Assert
             var okResult = result as OkObjectResult;

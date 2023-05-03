@@ -1,4 +1,5 @@
-﻿using DynamicODataToSQL.Interfaces;
+﻿using DynamicODataToSQL;
+using DynamicODataToSQL.Interfaces;
 using Moq;
 using ODataDBService.Models;
 using SqlKata.Compilers;
@@ -8,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DynamicODataToSQL
+namespace ODataDBTester.Tests
 {
     [TestFixture]
     public class ODataToSqlConverterTests
@@ -23,9 +24,9 @@ namespace DynamicODataToSQL
             [SetUp]
             public void Setup()
             {
-                _edmModelBuilder= new EdmModelBuilder();    
-                _sqlServerCompiler=new SqlServerCompiler { UseLegacyPagination=false };
-                _oDataToSqlConverter=new ODataToSqlConverter(_edmModelBuilder, _sqlServerCompiler);
+                _edmModelBuilder = new EdmModelBuilder();
+                _sqlServerCompiler = new SqlServerCompiler { UseLegacyPagination = false };
+                _oDataToSqlConverter = new ODataToSqlConverter(_edmModelBuilder, _sqlServerCompiler);
             }
 
             [Test]

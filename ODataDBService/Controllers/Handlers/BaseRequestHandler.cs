@@ -11,10 +11,12 @@ namespace ODataDBService.Controllers.Handlers
             _logger=logger;
         }
 
-        protected IActionResult HandleSuccess(string message, params object[] args)
+        protected IActionResult HandleSuccess(string message, object? result=null, params object[] args)
         {
             _logger.LogInformation(message, args);
-            return new OkResult();
+            return result != null 
+                ? new OkObjectResult(result)
+                : new OkResult();
         }
 
         protected IActionResult HandleNotFound(string message, params object[] args)

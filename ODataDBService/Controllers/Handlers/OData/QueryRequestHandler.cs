@@ -1,5 +1,7 @@
 ﻿using Flurl;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Routing;
 using ODataDBService.Controllers.Handlers.OData.Interfaces;
 using ODataDBService.Models;
@@ -12,10 +14,10 @@ namespace ODataDBService.Controllers.Handlers.OData
         private readonly IODataV4Service _oDataV4Service;
         private readonly IUrlHelper _urlHelper;
 
-        public QueryRequestHandler(ILogger<QueryRequestHandler> logger, IODataV4Service oDataV4Service, IUrlHelperFactory urlHelperFactory) : base(logger)
+        public QueryRequestHandler(ILogger<QueryRequestHandler> logger, IODataV4Service oDataV4Service, IHttpContextAccessor httpContextAccessor, IUrlHelperFactory urlHelperFactory) : base(logger)
         {
             _oDataV4Service=oDataV4Service??throw new ArgumentNullException(nameof(oDataV4Service));
-            _urlHelper=urlHelperFactory?.GetUrlHelper(new ActionContext())??throw new ArgumentNullException(nameof(urlHelperFactory));
+            _urlHelper=urlHelperFactory?.GetUrlHelper(new ActionContext(httpContextAccessor?.HttpContext??new DefaultHttpContext(), new RouteData(), new ActionDescriptor()))??throw new ArgumentNullException(nameof(urlHelperFactory));
         }
 
         public async Task<IActionResult> HandleAsync(string tableName, IQueryCollection query)
@@ -55,7 +57,7 @@ namespace ODataDBService.Controllers.Handlers.OData
                 .SetQueryParam("$orderby", oDataQuery.OrderBy)
                 .SetQueryParam("$top", oDataQuery.Top)
                 .SetQueryParam("$skip", oDataQuery.Skip+oDataQuery.Top);
-            return HandleSuccess($"Successfully retrieved records for '{tableName}'");
+            return HandleSuccess($"Successfully retrieved records for '{tableName}'", queryResult);
         }
 
         private ODataQuery BuildODataQuery(string tableName, IQueryCollection query)
