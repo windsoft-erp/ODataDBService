@@ -22,7 +22,7 @@ ODataDBService is a .NET Core web API that provides a generic OData interface to
 
 The `ODataDBService` project is the main project in the solution that provides the OData interface to the Microsoft SQL Server database. It includes the following endpoints:
 
-## API Endpoints
+#### API Endpoints
 
 - `GET /ODataV4/{tableName}`: Query records from a table.
   - Query parameters: `$select`, `$filter`, `$orderby`, `$top`, `$skip`
