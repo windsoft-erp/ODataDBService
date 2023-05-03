@@ -48,7 +48,7 @@ To deploy the ODataDBService API using Docker, follow these steps:
 2. Change the working directory to the root of the project.
 3. Run `docker-compose build` to build the Docker images for the `ODataDBService` and `MSSQLServer` services.
 4. Run `docker-compose up -d` to start the Docker containers for the `ODataDBService` and `MSSQLServer` services.
-5. Access the API at `http://localhost:8080/ODataV4`.
+5. Access the API at `http://localhost:8080`.
 
 ## Acknowledgements
 
