@@ -21,7 +21,7 @@ namespace ODataDBService.Controllers.Handlers.OData
         public async Task<IActionResult> ProcessBatchRequestAsync(HttpRequest request)
         {
             if (!MediaTypeHeaderValue.TryParse(request.ContentType, out var contentTypeHeader)||
-                !contentTypeHeader.MediaType.Equals("multipart/mixed", StringComparison.OrdinalIgnoreCase))
+               (contentTypeHeader.MediaType!=null && contentTypeHeader.MediaType.Equals("multipart/mixed", StringComparison.OrdinalIgnoreCase)))
             {
                 return HandleBadRequest("Invalid content type for batch request. Expected 'multipart/mixed'.");
             }
@@ -103,16 +103,20 @@ namespace ODataDBService.Controllers.Handlers.OData
         }
 
 
-
         private async Task<BatchResponseItem> ProcessSubRequestAsync(HttpRequest subRequest)
         {
+            if (subRequest.Path.Value==null)
+            {
+                return new BatchResponseItem(HttpStatusCode.BadRequest, "Invalid request URL in batch operation.");
+            }
+
             var pathSegments = subRequest.Path.Value.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+
             if (pathSegments.Length<2)
             {
                 return new BatchResponseItem(HttpStatusCode.BadRequest, "Invalid request URL in batch operation.");
             }
 
-            var controller = pathSegments[0];
             var tableName = pathSegments[1];
             IActionResult result;
 
