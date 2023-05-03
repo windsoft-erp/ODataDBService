@@ -31,7 +31,7 @@ An ASP.NET Core API project that provides a simple ODataV4 service using MSSQL S
 2. Change the working directory to the root of the project.
 3. Run `docker build -t odatadbapi .` to build the Docker image.
 4. Run `docker run -d -p 8080:80 --name odatadbapi odatadbapi` to start a container with the built image.
-5. Access the API at `http://localhost:8080/ODataV4`.
+5. Access the API at `http://localhost:8080`.
 
 ## Contributing
 
