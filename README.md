@@ -27,7 +27,7 @@ The `ODataDBService` project is the main project in the solution that provides t
 - `/odata/{entity}?$filter={filter}`: Gets all records for the specified entity that match the specified filter.
 - `/odata/{entity}?$orderby={orderby}`: Gets all records for the specified entity sorted by the specified order.
 - `/odata/{entity}?$skip={skip}&$top={top}`: Gets a subset of the records for the specified entity based on the specified skip and top values.
-- `/api/SQLCommand`: Executes SQL commands directly against the database. The SQL command should be a stored procedure that takes no parameters and returns an integer value.
+- `/api/SQLCommand`: Executes SQL commands directly against the database. The SQL command should be a stored procedure
 
 ### ODataDBUp
 
