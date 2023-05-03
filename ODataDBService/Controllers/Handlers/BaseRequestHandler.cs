@@ -22,7 +22,7 @@ namespace ODataDBService.Controllers.Handlers
         protected IActionResult HandleNotFound(string message, params object[] args)
         {
             _logger.LogWarning(message, args);
-            return new NotFoundResult();
+            return new NotFoundObjectResult(string.Format(message, args));
         }
 
         protected IActionResult HandleError(string message, Exception ex, params object[] args)

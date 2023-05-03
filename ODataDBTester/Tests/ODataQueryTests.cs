@@ -9,16 +9,9 @@ using ODataDBService.Services;
 using SqlKata.Compilers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Routing;
 using ODataDBService.Models;
-using Microsoft.Extensions.DependencyInjection;
 using ODataDBService.Controllers.Handlers.OData.Interfaces;
 using ODataDBService.Controllers.Handlers.OData;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using System.Net.Http;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Primitives;
 
 namespace ODataDBTester.Tests
@@ -119,20 +112,84 @@ namespace ODataDBTester.Tests
             Assert.That(actual.Value, Is.EqualTo(expected));
         }
 
-        //[Test]
-        //public async Task QueryAsync_WithInvalidParameters_ShouldReturnBadRequest()
-        //{
-        //    // Arrange
-        //    var tableName = "Employees";
-        //    _mockODataV4Repository.Setup(x => x.QueryAsync(tableName, null, null, null, 10, 0))
-        //        .ReturnsAsync(new List<object>());
 
-        //    // Act
-        //    var result = await _controller.QueryAsync(tableName, "$invalidparam");
+        [Test]
+        public async Task QueryAsync_OnNonExistingColumn_ShouldReturnNotFound()
+        {
+            // Arrange
+            var tableName = "Employees";
+            var expected = new List<object>
+            {
+                new Dictionary<string, object> {{"EmployeeID", 1}, {"FirstName", "Nancy"}, {"LastName", "Davolio"}, {"Title", "Sales Representative"}, {"BirthDate", new DateTime(1968, 12, 8)}, {"HireDate", new DateTime(1992, 5, 1)}, {"City", "Seattle"}, {"Country", "USA"}, {"TotalOrders", 0}}
+            };
 
-        //    // Assert
-        //    Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
-        //}
+            var queryString = new QueryCollection(new Dictionary<string, StringValues>()
+            {
+                { "$select", new StringValues("AnotherColumn") }
+            });
+
+            _controller.HttpContext.Request.Query=queryString;
+
+            // Act
+            var result = await _controller.QueryAsync(tableName);
+
+            // Assert
+            var notFoundObjectResult = result as NotFoundObjectResult;
+            Assert.NotNull(notFoundObjectResult);
+            Assert.That(notFoundObjectResult.Value, Is.EqualTo($"Invalid column name 'AnotherColumn'."));
+        }
+
+        [Test]
+        public async Task QueryAsync_WithEmptyTable_ShouldReturnNoContent()
+        {
+            var tableName = "Products";
+
+            // Act
+            var result = await _controller.QueryAsync(tableName);
+
+            // Assert
+            var noContentResult = result as NoContentResult;
+            Assert.NotNull(noContentResult);
+        }
+
+        [Test]
+        public async Task QueryAsync_OnNonExistingTable_ShouldReturnNotFound()
+        {   
+            var tableName = "InvalidTable";
+
+            // Act
+            var result = await _controller.QueryAsync(tableName);
+
+            // Assert
+            var notFoundObjectResult = result as NotFoundObjectResult;
+            Assert.NotNull(notFoundObjectResult);
+            Assert.That(notFoundObjectResult.Value, Is.EqualTo($"Table {tableName} does not exist."));
+        }
+
+        [Test]
+        public async Task QueryAsync_WithInvalidParams_ShouldReturnBadRequest()
+        {
+            // Arrange
+            var tableName = "Employees";
+            var expected = new List<object>
+            {
+                new Dictionary<string, object> {{"EmployeeID", 1}, {"FirstName", "Nancy"}, {"LastName", "Davolio"}, {"Title", "Sales Representative"}, {"BirthDate", new DateTime(1968, 12, 8)}, {"HireDate", new DateTime(1992, 5, 1)}, {"City", "Seattle"}, {"Country", "USA"}, {"TotalOrders", 0}}
+            };
+
+            var queryString = new QueryCollection(new Dictionary<string, StringValues>()
+            {
+                { "$invalidparam", new StringValues("FirstName eq 'Nancy'") }
+            });
+
+            _controller.HttpContext.Request.Query=queryString;
+
+            // Act
+            var result = await _controller.QueryAsync(tableName);
+
+            // Assert
+            var badRequestResult = result as BadRequestObjectResult;
+            Assert.NotNull(badRequestResult);
+            Assert.That(badRequestResult.Value, Is.EqualTo("Invalid parameters in query string: $invalidparam."));
+        }
     }
-
 }

@@ -20,12 +20,12 @@ namespace ODataDBService.Controllers.Handlers.OData
                 var result = await _oDataV4Service.DeleteAsync(tableName, id);
 
                 return result
-                    ? HandleSuccess($"Successfully deleted record with ID '{id}' from table '{tableName}'")
-                    : HandleNotFound($"Could not find record with ID '{id}' in table '{tableName}'");
+                    ? HandleSuccess($"Successfully deleted record with ID '{id}' from table '{tableName}'.")
+                    : HandleNotFound($"Could not find record with ID '{id}' in table '{tableName}'.");
             }
             catch (Exception ex)
             {
-                var errorMessage = $"Error deleting record with ID '{id}' from table '{tableName}'";
+                var errorMessage = $"Error deleting record with ID '{id}' from table '{tableName}'.";
                 return HandleError(errorMessage, ex);
             }
         }

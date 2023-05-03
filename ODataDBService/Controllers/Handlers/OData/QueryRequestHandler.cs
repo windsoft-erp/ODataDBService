@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using ODataDBService.Controllers.Handlers.OData.Interfaces;
 using ODataDBService.Models;
 using ODataDBService.Services;
+using System.Data.SqlClient;
 
 namespace ODataDBService.Controllers.Handlers.OData
 {
@@ -26,7 +27,7 @@ namespace ODataDBService.Controllers.Handlers.OData
             {
                 if (query.Keys.Except(new[] { "$select", "$filter", "$orderby", "$top", "$skip", "apply" }, StringComparer.OrdinalIgnoreCase).Any())
                 {
-                    return HandleBadRequest($"Invalid parameters in query string: {string.Join(",", query.Keys)}");
+                    return HandleBadRequest($"Invalid parameters in query string: {string.Join(",", query.Keys)}.");
                 }
 
                 var oDataQuery = BuildODataQuery(tableName, query);
@@ -34,16 +35,19 @@ namespace ODataDBService.Controllers.Handlers.OData
 
                 return result switch
                 {
-                    null => HandleNotFound($"Error retrieving records for '{tableName}'"),
-                    { Count: 0 } => HandleNoContent($"No records found for '{tableName}'"),
+                    { Count: 0 } => HandleNoContent($"No records found for '{tableName}'."),
                     var queryResult => HandleQuerySuccess(queryResult, tableName, oDataQuery)
                 };
 
             }
             catch (Exception ex)
             {
-                var errorMessage = $"Error retrieving records for '{tableName}'";
-                return HandleError(errorMessage, ex);
+                return ex switch
+                {
+                    SqlException sqlEx when sqlEx.Message.Contains($"Invalid object name '{tableName}'") => HandleNotFound($"Table {tableName} does not exist."),
+                    SqlException sqlEx when sqlEx.Message.Contains("Invalid column name") => HandleNotFound(ex.Message),
+                    _ => HandleError($"Error retrieving records for '{tableName}.'", ex),
+                };
             }
         }
 
@@ -57,7 +61,7 @@ namespace ODataDBService.Controllers.Handlers.OData
                 .SetQueryParam("$orderby", oDataQuery.OrderBy)
                 .SetQueryParam("$top", oDataQuery.Top)
                 .SetQueryParam("$skip", oDataQuery.Skip+oDataQuery.Top);
-            return HandleSuccess($"Successfully retrieved records for '{tableName}'", queryResult);
+            return HandleSuccess($"Successfully retrieved records for '{tableName}'.", queryResult);
         }
 
         private ODataQuery BuildODataQuery(string tableName, IQueryCollection query)

@@ -22,12 +22,12 @@ namespace ODataDBService.Controllers.Handlers.OData
                 var result = await _oDataV4Service.InsertAsync(tableName, data);
 
                 return result
-                    ? HandleSuccess($"Successfully inserted record into table '{tableName}'")
-                    : HandleNotFound($"Error inserting record into table '{tableName}'");
+                    ? HandleSuccess($"Successfully inserted record into table '{tableName}'.")
+                    : HandleNotFound($"Error inserting record into table '{tableName}'.");
             }
             catch (Exception ex)
             {
-                var errorMessage = $"Error inserting record into table '{tableName}'";
+                var errorMessage = $"Error inserting record into table '{tableName}'.";
                 return HandleError(errorMessage, ex);
             }
         }

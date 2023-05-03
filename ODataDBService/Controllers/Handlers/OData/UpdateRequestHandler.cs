@@ -21,12 +21,12 @@ namespace ODataDBService.Controllers.Handlers.OData
                 var result = await _oDataV4Service.UpdateAsync(tableName, id, data);
 
                 return result
-                    ? HandleSuccess($"Successfully updated record with ID '{id}' in table '{tableName}'")
-                    : HandleNotFound($"Could not find record with ID '{id}' in table '{tableName}'");
+                    ? HandleSuccess($"Successfully updated record with ID '{id}' in table '{tableName}'.")
+                    : HandleNotFound($"Could not find record with ID '{id}' in table '{tableName}'.");
             }
             catch (Exception ex)
             {
-                var errorMessage = $"Error updating record with ID '{id}' in table '{tableName}'";
+                var errorMessage = $"Error updating record with ID '{id}' in table '{tableName}'.";
                 return HandleError(errorMessage, ex);
             }
         }
