@@ -22,11 +22,15 @@ ODataDBService is a .NET Core web API that provides a generic OData interface to
 
 The `ODataDBService` project is the main project in the solution that provides the OData interface to the Microsoft SQL Server database. It includes the following endpoints:
 
-- `/odata/{entity}`: Gets all records for the specified entity.
-- `/odata/{entity}?$filter={filter}`: Gets all records for the specified entity that match the specified filter.
-- `/odata/{entity}?$orderby={orderby}`: Gets all records for the specified entity sorted by the specified order.
-- `/odata/{entity}?$skip={skip}&$top={top}`: Gets a subset of the records for the specified entity based on the specified skip and top values.
-- `/api/SQLCommand`: Executes SQL commands directly against the database. The SQL command should be a stored procedure
+## API Endpoints
+
+- `GET /ODataV4/{tableName}`: Query records from a table.
+  - Query parameters: `$select`, `$filter`, `$orderby`, `$top`, `$skip`
+- `DELETE /ODataV4/{tableName}/{key}`: Delete a record from a table using its key.
+- `POST /ODataV4/{tableName}`: Insert a new record into a table.
+- `PUT /ODataV4/{tableName}({key})`: Update an existing record in a table using its key.
+- `POST /ODataV4/invalidate-cache/{tableName}`: Invalidate the table info cache for a specific table.
+- `POST /SQLCommand/{storedProcedureName}`: Execute SQL stored procedure directly against the database
 
 ### ODataDBUp
 
