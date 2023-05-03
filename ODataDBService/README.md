@@ -23,6 +23,7 @@ An ASP.NET Core API project that provides a simple ODataV4 service using MSSQL S
 - `POST /ODataV4/{tableName}`: Insert a new record into a table.
 - `PUT /ODataV4/{tableName}({key})`: Update an existing record in a table using its key.
 - `POST /ODataV4/invalidate-cache/{tableName}`: Invalidate the table info cache for a specific table.
+- `POST /SQLCommand/{storedProcedureName}`: Execute SQL stored procedure directly against the database
 
 ## Deployment with Docker
 
