@@ -29,6 +29,7 @@ The ODataDBTester project uses the `appsettings.json` configuration file to spec
     "DefaultConnection": "Server=localhost;Database=ODataDBService;User Id=sa;Password=1234;"
   }
 }
+```
 
 ## Acknowledgements
 
