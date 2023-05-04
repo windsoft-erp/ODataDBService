@@ -1,13 +1,13 @@
-﻿namespace ODataDBService.Models
+﻿namespace ODataDBService.Models;
+
+public class ODataQuery
 {
-    public class ODataQuery
-    {
-        public string TableName { get; set; } = string.Empty;
-        public string Select { get; set; } = string.Empty;
-        public string Filter { get; set; } = string.Empty;
-        public string Apply { get; set; } = string.Empty;
-        public string OrderBy { get; set; } = string.Empty;
-        public int Top { get; set; }
-        public int Skip { get; set; }
-    }
+    public string TableName { get; init; } = string.Empty;
+    public string Select { get; init; } = string.Empty;
+    public string Filter { get; init; } = string.Empty;
+    public string Apply { get; init; } = string.Empty;
+    public string OrderBy { get; init; } = string.Empty;
+    public int Top { get; init; }
+    public int Skip { get; init; }
 }
+

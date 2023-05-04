@@ -1,8 +1,8 @@
-﻿namespace ODataDBService.Models
+﻿namespace ODataDBService.Models;
+
+public class StoredProcedureParameter
 {
-    public class StoredProcedureParameter
-    {
-        public string? Name { get; set; }
-        public string? Type { get; set; }
-    }
+    public string? Name { get; set; }
+    public string? Type { get; set; }
 }
+
