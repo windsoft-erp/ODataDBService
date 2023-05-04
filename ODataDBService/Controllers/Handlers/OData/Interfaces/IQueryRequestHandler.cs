@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace ODataDBService.Controllers.Handlers.OData.Interfaces
+namespace ODataDBService.Controllers.Handlers.OData.Interfaces;
+public interface IQueryRequestHandler
 {
-    public interface IQueryRequestHandler
-    {
-        Task<IActionResult> HandleAsync(string tableName, IQueryCollection query);
-    }
+    Task<IActionResult> HandleAsync(string tableName, IQueryCollection query);
 }

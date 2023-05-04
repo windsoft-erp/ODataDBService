@@ -8,9 +8,9 @@ namespace ODataDBService.Controllers.Handlers.SQLCommand
 {
     public class StoredProcedureRequestHandler : BaseRequestHandler, IStoredProcedureRequestHandler
     {
-        private readonly ISQLCommandService _commandService;
+        private readonly ISqlCommandService _commandService;
 
-        public StoredProcedureRequestHandler(ILogger<InvalidateCacheRequestHandler> logger, ISQLCommandService commandService) : base(logger)
+        public StoredProcedureRequestHandler(ILogger<InvalidateCacheRequestHandler> logger, ISqlCommandService commandService) : base(logger)
         {
             _commandService=commandService??throw new ArgumentNullException(nameof(commandService));
         }
@@ -33,8 +33,6 @@ namespace ODataDBService.Controllers.Handlers.SQLCommand
                 var errorMessage = $"Error running stored procedure '{storedProcedureName}'";
                 return HandleError(errorMessage, ex);
             }
-
-            return null;
         }
 
         private static Dictionary<string, object> ConvertJsonToDictionary(JsonElement jsonElement)

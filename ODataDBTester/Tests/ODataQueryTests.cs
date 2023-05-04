@@ -118,10 +118,6 @@ namespace ODataDBTester.Tests
         {
             // Arrange
             var tableName = "Employees";
-            var expected = new List<object>
-            {
-                new Dictionary<string, object> {{"EmployeeID", 1}, {"FirstName", "Nancy"}, {"LastName", "Davolio"}, {"Title", "Sales Representative"}, {"BirthDate", new DateTime(1968, 12, 8)}, {"HireDate", new DateTime(1992, 5, 1)}, {"City", "Seattle"}, {"Country", "USA"}, {"TotalOrders", 0}}
-            };
 
             var queryString = new QueryCollection(new Dictionary<string, StringValues>()
             {
@@ -167,14 +163,10 @@ namespace ODataDBTester.Tests
         }
 
         [Test]
-        public async Task QueryAsync_WithInvalidParams_ShouldReturnBadRequest()
+        public async Task QueryAsync_WithInvalidLeftSideParams_ShouldReturnBadRequest()
         {
             // Arrange
             var tableName = "Employees";
-            var expected = new List<object>
-            {
-                new Dictionary<string, object> {{"EmployeeID", 1}, {"FirstName", "Nancy"}, {"LastName", "Davolio"}, {"Title", "Sales Representative"}, {"BirthDate", new DateTime(1968, 12, 8)}, {"HireDate", new DateTime(1992, 5, 1)}, {"City", "Seattle"}, {"Country", "USA"}, {"TotalOrders", 0}}
-            };
 
             var queryString = new QueryCollection(new Dictionary<string, StringValues>()
             {
@@ -190,6 +182,28 @@ namespace ODataDBTester.Tests
             var badRequestResult = result as BadRequestObjectResult;
             Assert.NotNull(badRequestResult);
             Assert.That(badRequestResult.Value, Is.EqualTo("Invalid parameters in query string: $invalidparam."));
+        }
+
+        [Test]
+        public async Task QueryAsync_WithInvalidRightSideParams_ShouldReturnBadRequest()
+        {
+            // Arrange
+            var tableName = "Employees";
+
+            var queryString = new QueryCollection(new Dictionary<string, StringValues>()
+            {
+                { "$filter", new StringValues("FirstName e!q 'Nancy'") }
+            });
+
+            _controller.HttpContext.Request.Query=queryString;
+
+            // Act
+            var result = await _controller.QueryAsync(tableName);
+
+            // Assert
+            var badRequestResult = result as BadRequestObjectResult;
+            Assert.NotNull(badRequestResult);
+            Assert.That(badRequestResult.Value, Is.EqualTo("Syntax error at position 11 in 'FirstName e!q 'Nancy''."));
         }
     }
 }

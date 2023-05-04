@@ -27,14 +27,24 @@ namespace ODataDBService.Services
             return result;
         }
 
+        public async Task<dynamic> QueryByIdAsync(string tableName, string key)
+        {
+            return await _oDataV4Repository.QueryByIdAsync(tableName, key);
+        }
+
         public async Task<bool> DeleteAsync(string tableName, string key)
         {
             return await _oDataV4Repository.DeleteAsync(tableName, key);
         }
 
-        public async Task<bool> InsertAsync(string tableName, JsonElement data)
+        public async Task<dynamic?> InsertAsync(string tableName, JsonElement data)
         {
-            return await _oDataV4Repository.InsertAsync(tableName, data);
+            var result = await _oDataV4Repository.InsertAsync(tableName, data);
+            return result switch
+            {
+                true => await _oDataV4Repository.QueryByExtractedIdAsync(tableName, data),
+                false => null
+            };
         }
 
         public async Task<bool> UpdateAsync(string tableName, string key, JsonElement data)

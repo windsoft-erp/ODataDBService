@@ -55,10 +55,10 @@ namespace ODataDBService.Controllers.Handlers
             return new NoContentResult();
         }
 
-        protected IActionResult HandleCreated(string message, object value, string? uri, params object[] args)
+        protected IActionResult HandleCreated(string message, object value, string uri = "", params object[] args)
         {
             _logger.LogInformation(message, args);
-            return new CreatedResult(uri??"", value);
+            return new CreatedResult(uri, value);
         }
     }
 }

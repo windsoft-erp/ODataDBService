@@ -16,7 +16,7 @@ namespace ODataDBService.Services.Repositories
             _connectionString=connectionString;
         }
 
-        public async Task<IEnumerable<T>> ExecuteStoredProcedureAsync<T>(string storedProcedureName, Dictionary<string, object> parameters = null)
+        public async Task<IEnumerable<T>> ExecuteStoredProcedureAsync<T>(string storedProcedureName, Dictionary<string, object>? parameters = null)
         {
             using (var connection = new SqlConnection(_connectionString))
             {

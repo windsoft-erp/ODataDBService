@@ -10,11 +10,11 @@ namespace ODataDBService.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class SQLCommandController : ControllerBase
+    public class SqlCommandController : ControllerBase
     {
         private readonly IStoredProcedureRequestHandler _spRequestHandler;
 
-        public SQLCommandController(IStoredProcedureRequestHandler spRequestHandler)
+        public SqlCommandController(IStoredProcedureRequestHandler spRequestHandler)
         {
             _spRequestHandler=spRequestHandler;
         }

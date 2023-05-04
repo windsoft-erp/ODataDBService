@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
-namespace ODataDBService.Controllers.Handlers.OData.Interfaces
+namespace ODataDBService.Controllers.Handlers.OData.Interfaces;
+public interface IInsertRequestHandler
 {
-    public interface IInsertRequestHandler
-    {
-        Task<IActionResult> HandleAsync(string tableName, JsonElement data);
-    }
+    Task<IActionResult> HandleAsync(string tableName, JsonElement data);
 }

@@ -41,6 +41,33 @@ namespace ODataDBService.Services.Repositories
 
             return rows;
         }
+        
+        public async Task<dynamic?> QueryByExtractedIdAsync(string tableName, JsonElement data)
+        {
+            var tableInfo = GetTableInfo(tableName);
+
+            if (data.TryGetProperty(tableInfo.PrimaryKey, out var primaryKeyValue) && primaryKeyValue.ValueKind != JsonValueKind.Null)
+            {
+                // If the primary key is included in the data and is not null, use it instead of the passed in key
+                return await QueryByIdAsync(tableName, primaryKeyValue.ToString());
+            }
+
+            return null;
+        }
+        
+        public async Task<dynamic?> QueryByIdAsync(string tableName, string id)
+        {
+            var tableInfo = GetTableInfo(tableName);
+
+            var sql = $"SELECT * FROM {tableInfo.TableName} WHERE {tableInfo.PrimaryKey} = @{tableInfo.PrimaryKey}";
+            var parameters = new DynamicParameters();
+            parameters.Add(tableInfo.PrimaryKey, id);
+
+            await using var conn = new SqlConnection(_connectionString);
+            var result = await conn.QueryAsync<dynamic>(sql, parameters).ConfigureAwait(false);
+
+            return result;
+        }
 
         public async Task<bool> DeleteAsync(string tableName, string key)
         {

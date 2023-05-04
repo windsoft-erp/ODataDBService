@@ -4,12 +4,12 @@ using System.Data;
 
 namespace ODataDBService.Services
 {
-    public class SQLCommandService : ISQLCommandService
+    public class SqlCommandService : ISqlCommandService
     {
         private readonly ILogger _logger;
         private readonly ISQLCommandRepository _repository;
 
-        public SQLCommandService(ILogger<SQLCommandService> logger, ISQLCommandRepository repository)
+        public SqlCommandService(ILogger<SqlCommandService> logger, ISQLCommandRepository repository)
         {
             _logger = logger;
             _repository = repository;

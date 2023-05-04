@@ -1,6 +1,6 @@
 ﻿namespace ODataDBService.Services
 {
-    public interface ISQLCommandService
+    public interface ISqlCommandService
     {
         Task<IEnumerable<T>> ExecuteStoredProcedureAsync<T>(string storedProcedureName, Dictionary<string, object> parameters);
     }

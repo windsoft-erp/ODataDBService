@@ -14,7 +14,7 @@ namespace ODataDBService.Controllers.Handlers.OData.Swagger
             {
                 foreach (var param in operation.Parameters)
                 {
-                    if (odataQuery.QueryExamples.TryGetValue(param.Name, out string example))
+                    if (odataQuery.QueryExamples.TryGetValue(param.Name, out string? example))
                     {
                         param.Description+=$" Example: {example}";
                     }

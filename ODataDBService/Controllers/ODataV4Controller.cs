@@ -54,6 +54,22 @@ namespace ODataDBService.Controllers
             [FromQuery(Name = "$top")] int top = 10,
             [FromQuery(Name = "$skip")] int skip = 0) =>
             _requestHandlerFactory.CreateQueryHandler().HandleAsync(tableName, HttpContext.Request.Query);
+        
+        /// <summary>
+        /// Gets a record from the specified table by key.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /ODataV4/Customers('ALFKI')
+        ///
+        /// </remarks>
+        /// <param name="tableName">The name of the table containing the record to get.</param>
+        /// <param name="key">The key of the record to get.</param>
+        /// <returns>An IActionResult indicating the success or failure of the operation.</returns>
+        [HttpGet("{tableName}({key})")]
+        public Task<IActionResult> QueryByIdAsync(string tableName, string key) =>
+            _requestHandlerFactory.CreateQueryByIdRequestHandler().HandleAsync(tableName, key);
 
         /// <summary>
         /// Deletes a record from the specified table by key.

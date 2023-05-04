@@ -6,9 +6,11 @@ namespace ODataDBService.Services.Repositories
     public interface IODataV4Repository
     {
         Task<IEnumerable<dynamic>> QueryAsync(ODataQuery oDataQuery);
+        Task<dynamic?> QueryByIdAsync(string tableName, string key);
+        Task<dynamic?> QueryByExtractedIdAsync(string tableName, JsonElement data);
         Task<bool> DeleteAsync(string tableName, string key);
         Task<bool> InsertAsync(string tableName, JsonElement data);
         Task<bool> UpdateAsync(string tableName, string key, JsonElement data);
-        bool InvalidateTableInfoCache(string tableName);    
+        bool InvalidateTableInfoCache(string tableName);
     }
 }
