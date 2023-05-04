@@ -1,13 +1,5 @@
 ﻿using DynamicODataToSQL;
-using DynamicODataToSQL.Interfaces;
-using Moq;
-using ODataDBService.Models;
 using SqlKata.Compilers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ODataDBTester.Tests
 {

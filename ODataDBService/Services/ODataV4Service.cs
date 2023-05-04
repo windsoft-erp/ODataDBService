@@ -40,9 +40,10 @@ public class ODataV4Service : IODataV4Service
     public async Task<dynamic?> InsertAsync(string tableName, JsonElement data)
     {
         var result = await _oDataV4Repository.InsertAsync(tableName, data);
+        var insertedItem = await _oDataV4Repository.QueryByExtractedIdAsync(tableName, data);
         return result switch
         {
-            true => await _oDataV4Repository.QueryByExtractedIdAsync(tableName, data),
+            true => insertedItem ?? JsonSerializer.Deserialize<dynamic>(data),
             false => null
         };
     }
