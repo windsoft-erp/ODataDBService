@@ -29,6 +29,18 @@ This will start the console application and display a menu with three options:
 
 Select the appropriate option from the menu to deploy the SQL scripts to your database.
 
+## Configuration
+
+The ODataDBUp project uses the `appsettings.json` configuration file to specify the database connection string used by the tests. To configure the database connection string, open the `appsettings.json` file and modify the `"DefaultConnection"` property to point to your own database.
+
+```json
+{
+  "ConnectionStrings": {
+    "Sql": "Server=localhost;Database=ODataDBService;User Id=sa;Password=1234;"
+  }
+}
+```
+
 ## Acknowledgements
 
 This project uses the following open source libraries:
