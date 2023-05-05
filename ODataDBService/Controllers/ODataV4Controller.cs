@@ -1,19 +1,30 @@
-using Microsoft.AspNetCore.Mvc;
-using ODataDBService.Controllers.Handlers.OData.Interfaces;
-using ODataDBService.Controllers.Handlers.OData.Swagger;
-using System.Text.Json;
-
+// <copyright file="ODataV4Controller.cs" company="WindSoft">
+// Copyright (c) WindSoft. All rights reserved.
+// Licensed under the WindSoft license. See LICENSE file in the project root for full license information.
+// </copyright>
 namespace ODataDBService.Controllers;
+using System.Text.Json;
+using Handlers.OData.Interfaces;
+using Handlers.OData.Swagger;
+using Microsoft.AspNetCore.Mvc;
 
+/// <summary>
+/// The controller for handling OData V4 requests.
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class ODataV4Controller : ControllerBase
 {
-    private readonly IODataRequestHandlerFactory _requestHandlerFactory;
+    private readonly IODataRequestHandlerFactory requestHandlerFactory;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ODataV4Controller"/> class.
+    /// </summary>
+    /// <param name="requestHandlerFactory">The factory for creating OData request handlers.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="requestHandlerFactory"/> is <c>null</c>.</exception>
     public ODataV4Controller(IODataRequestHandlerFactory requestHandlerFactory)
     {
-        _requestHandlerFactory=requestHandlerFactory??throw new ArgumentNullException(nameof(requestHandlerFactory));
+        this.requestHandlerFactory = requestHandlerFactory ?? throw new ArgumentNullException(nameof(requestHandlerFactory));
     }
 
     /// <summary>
@@ -24,6 +35,7 @@ public class ODataV4Controller : ControllerBase
     ///
     ///     GET /ODataV4/Customers?c$select=FirstName,LastName&amp;$filter=City eq 'Seattle'&amp;$orderby=LastName&amp;$top=10&amp;$skip=0
     ///
+    /// The sample request will query the Customers table with OData query parameters from the query string.
     /// </remarks>
     /// <param name="tableName">The name of the table to query.</param>
     /// <param name="select">A comma-separated list of properties to select from the table.</param>
@@ -40,8 +52,7 @@ public class ODataV4Controller : ControllerBase
         "$apply=groupby((City), sum(Revenue))",
         "$orderby=LastName",
         "$top=10",
-        "$skip=0"
-    )]
+        "$skip=0")]
     public Task<IActionResult> QueryAsync(
         string tableName,
         [FromQuery(Name = "$select")] string? select = null,
@@ -50,8 +61,8 @@ public class ODataV4Controller : ControllerBase
         [FromQuery(Name = "$orderby")] string? orderby = null,
         [FromQuery(Name = "$top")] int top = 10,
         [FromQuery(Name = "$skip")] int skip = 0) =>
-        _requestHandlerFactory.CreateQueryHandler().HandleAsync(tableName, HttpContext.Request.Query);
-    
+        this.requestHandlerFactory.CreateQueryHandler().HandleAsync(tableName, this.HttpContext.Request.Query);
+
     /// <summary>
     /// Gets a record from the specified table by key.
     /// </summary>
@@ -60,13 +71,14 @@ public class ODataV4Controller : ControllerBase
     ///
     ///     GET /ODataV4/Customers('ALFKI')
     ///
+    /// The sample request will query the Customers table by the primary key value.
     /// </remarks>
     /// <param name="tableName">The name of the table containing the record to get.</param>
     /// <param name="key">The key of the record to get.</param>
     /// <returns>An IActionResult indicating the success or failure of the operation.</returns>
     [HttpGet("{tableName}({key})")]
     public Task<IActionResult> QueryByIdAsync(string tableName, string key) =>
-        _requestHandlerFactory.CreateQueryByIdRequestHandler().HandleAsync(tableName, key);
+        this.requestHandlerFactory.CreateQueryByIdRequestHandler().HandleAsync(tableName, key);
 
     /// <summary>
     /// Deletes a record from the specified table by key.
@@ -76,13 +88,14 @@ public class ODataV4Controller : ControllerBase
     ///
     ///     DELETE /ODataV4/Customers('ALFKI')
     ///
+    /// The sample request will delete the Customers record with primary key value.
     /// </remarks>
     /// <param name="tableName">The name of the table containing the record to delete.</param>
     /// <param name="key">The key of the record to delete.</param>
     /// <returns>An IActionResult indicating the success or failure of the operation.</returns>
     [HttpDelete("{tableName}({key})")]
     public Task<IActionResult> DeleteAsync(string tableName, string key) =>
-        _requestHandlerFactory.CreateDeleteHandler().HandleAsync(tableName, key);
+        this.requestHandlerFactory.CreateDeleteHandler().HandleAsync(tableName, key);
 
     /// <summary>
     /// Inserts a new record into the specified table.
@@ -98,13 +111,14 @@ public class ODataV4Controller : ControllerBase
     ///         "Country": "USA"
     ///     }
     ///
+    /// The sample request will insert the Customers record with data present in request body.
     /// </remarks>
     /// <param name="tableName">The name of the table to insert the record into.</param>
     /// <param name="data">The JSON data for the new record.</param>
     /// <returns>An IActionResult indicating the success or failure of the operation.</returns>
     [HttpPost("{tableName}")]
     public Task<IActionResult> PostAsync(string tableName, [FromBody] JsonElement data) =>
-        _requestHandlerFactory.CreateInsertHandler().HandleAsync(tableName, data);
+        this.requestHandlerFactory.CreateInsertHandler().HandleAsync(tableName, data);
 
     /// <summary>
     /// Updates a record in the specified table by key.
@@ -120,6 +134,7 @@ public class ODataV4Controller : ControllerBase
     ///         "Country": "USA"
     ///     }
     ///
+    /// The sample request will update the Customers record by primary key with data present in request body.
     /// </remarks>
     /// <param name="tableName">The name of the table containing the record to update.</param>
     /// <param name="key">The key of the record to update.</param>
@@ -127,7 +142,7 @@ public class ODataV4Controller : ControllerBase
     /// <returns>An IActionResult indicating the success or failure of the operation.</returns>
     [HttpPut("{tableName}({key})")]
     public Task<IActionResult> PutAsync(string tableName, string key, [FromBody] JsonElement data) =>
-        _requestHandlerFactory.CreateUpdateHandler().HandleAsync(tableName, key, data);
+        this.requestHandlerFactory.CreateUpdateHandler().HandleAsync(tableName, key, data);
 
     /// <summary>
     /// Invalidates the table info (information about PK and columns) cache for the specified table.
@@ -135,54 +150,55 @@ public class ODataV4Controller : ControllerBase
     /// <remarks>
     /// This method is used to clear the cache for the specified table, forcing a reload of the table schema and metadata
     /// the next time a request is made.
-    /// 
     /// Sample request:
     ///
     ///     DELETE /ODataV4/invalidate-cache/Customers
     ///
+    /// The sample requests deletes cache for the table.
     /// </remarks>
     /// <param name="tableName">The name of the table to invalidate the cache for.</param>
     /// <returns>An IActionResult indicating the success or failure of the operation.</returns>
     [HttpDelete("invalidate-cache/{tableName}")]
     public IActionResult InvalidateTableInfoCache(string tableName) =>
-        _requestHandlerFactory.CreateInvalidateCacheHandler().Handle(tableName);
+        this.requestHandlerFactory.CreateInvalidateCacheHandler().Handle(tableName);
 
     /// <summary>
-    /// Sends a batch of requests to the server.
+    /// Sends a batch of OData requests to the server.
     /// </summary>
     /// <remarks>
-    /// This method is used to send a batch of OData requests to the server, allowing multiple requests to be processed
-    /// in a single HTTP request. The requests are specified in the body of the HTTP request in the format of an OData
-    /// batch request.
+    /// Use this endpoint to send a batch of OData requests to the server. Multiple requests can be included in the body
+    /// of the HTTP request using the format of an OData batch request. The server processes each request and returns the
+    /// response for each request in the batch.
+    ///
+    /// Sample request:
+    ///
+    ///     POST /ODataV4/$batch
+    ///     Content-Type: multipart/mixed; boundary=batch_boundary
+    ///
+    ///     --batch_boundary
+    ///     Content-Type: application/http
+    ///     Content-Transfer-Encoding: binary
+    ///
+    ///     POST /ODataV4/Customers HTTP/1.1
+    ///     Content-Type: application/json
+    ///
+    ///     {"id":1,"name":"John Smith"}
+    ///
+    ///     --batch_boundary
+    ///     Content-Type: application/http
+    ///     Content-Transfer-Encoding: binary
+    ///
+    ///     GET /ODataV4/Orders?$filter=customer_id eq 1
+    ///
+    ///     --batch_boundary--
+    ///
+    /// Sample request will execute a batch with the specified ODataV4 commands.
     /// </remarks>
     /// <returns>
     /// An IActionResult indicating the success or failure of the operation. The result will contain a list of
-    /// <see cref="BatchResponseContent"/> objects, each of which represents the response for a single request in the batch.
+    /// objects each of which will contain the appropriate response for that specific batch operation.
     /// </returns>
-    /// <example>
-    /// This example demonstrates how to send a batch request to the server.
-    /// 
-    /// POST /$batch
-    /// Content-Type: multipart/mixed;boundary=batch_boundary
-    /// 
-    /// --batch_boundary
-    /// Content-Type: application/http
-    /// Content-Transfer-Encoding:binary
-    /// 
-    /// POST /api/orders HTTP/1.1
-    /// Content-Type: application/json
-    /// 
-    /// {"orderId":1,"customerId":1,"orderDate":"2023-04-29T00:00:00Z","totalAmount":123.45}
-    /// 
-    /// --batch_boundary
-    /// Content-Type: application/http
-    /// Content-Transfer-Encoding:binary
-    /// 
-    /// GET /api/customers?$filter=name eq 'John'
-    /// 
-    /// --batch_boundary--
-    /// </example>
     [HttpPost("$batch")]
-    public Task<IActionResult> BatchAsync() => 
-        _requestHandlerFactory.CreateBatchRequestHandler().ProcessBatchRequestAsync(Request);
+    public Task<IActionResult> BatchAsync() =>
+        this.requestHandlerFactory.CreateBatchRequestHandler().ProcessBatchRequestAsync(this.Request);
 }

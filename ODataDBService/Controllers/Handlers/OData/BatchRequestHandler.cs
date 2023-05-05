@@ -1,34 +1,53 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
-using ODataDBService.Controllers.Handlers.OData.Interfaces;
-using ODataDBService.Models;
+﻿// <copyright file="BatchRequestHandler.cs" company="WindSoft">
+// Copyright (c) WindSoft. All rights reserved.
+// Licensed under the WindSoft license. See LICENSE file in the project root for full license information.
+// </copyright>
+namespace ODataDBService.Controllers.Handlers.OData;
+
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using Models;
 
-namespace ODataDBService.Controllers.Handlers.OData;
+/// <summary>
+/// Represents a handler for processing batch requests.
+/// </summary>
 public class BatchRequestHandler : BaseRequestHandler, IBatchRequestHandler
 {
-    private readonly IODataRequestHandlerFactory _requestHandlerFactory;
+    private readonly IODataRequestHandlerFactory requestHandlerFactory;
 
-    public BatchRequestHandler(ILogger logger, IODataRequestHandlerFactory requestHandlerFactory) : base(logger)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BatchRequestHandler"/> class.
+    /// </summary>
+    /// <param name="logger">The logger instance to use.</param>
+    /// <param name="requestHandlerFactory">The factory instance to use for creating request handlers.</param>
+    public BatchRequestHandler(ILogger logger, IODataRequestHandlerFactory requestHandlerFactory)
+        : base(logger)
     {
-        _requestHandlerFactory=requestHandlerFactory??throw new ArgumentNullException(nameof(requestHandlerFactory));
+        this.requestHandlerFactory = requestHandlerFactory ?? throw new ArgumentNullException(nameof(requestHandlerFactory));
     }
 
+    /// <summary>
+    /// Processes the batch request asynchronously.
+    /// </summary>
+    /// <param name="request">The HTTP request to process.</param>
+    /// <returns>An asynchronous task that represents the operation, containing the result of the batch request.</returns>
     public async Task<IActionResult> ProcessBatchRequestAsync(HttpRequest request)
     {
-        if (!MediaTypeHeaderValue.TryParse(request.ContentType, out var contentTypeHeader)||
-           (contentTypeHeader.MediaType!=null && contentTypeHeader.MediaType.Equals("multipart/mixed", StringComparison.OrdinalIgnoreCase)))
+        if (!MediaTypeHeaderValue.TryParse(request.ContentType, out var contentTypeHeader) ||
+           (contentTypeHeader.MediaType != null && contentTypeHeader.MediaType.Equals("multipart/mixed", StringComparison.OrdinalIgnoreCase)))
         {
-            return HandleBadRequest("Invalid content type for batch request. Expected 'multipart/mixed'.");
+            return this.HandleBadRequest("Invalid content type for batch request. Expected 'multipart/mixed'.");
         }
 
         var batchBoundary = contentTypeHeader.Parameters.FirstOrDefault(p => p.Name.Equals("boundary", StringComparison.OrdinalIgnoreCase))?.Value;
         if (string.IsNullOrEmpty(batchBoundary))
         {
-            return HandleBadRequest("No boundary parameter found in the 'Content-Type' header of the batch request.");
+            return this.HandleBadRequest("No boundary parameter found in the 'Content-Type' header of the batch request.");
         }
 
         var responses = new List<BatchResponseItem>();
@@ -36,8 +55,8 @@ public class BatchRequestHandler : BaseRequestHandler, IBatchRequestHandler
 
         while (await reader.ReadNextSectionAsync() is MultipartSection section)
         {
-            var subRequest = await CreateSubRequestAsync(request, section);
-            var subResponse = await ProcessSubRequestAsync(subRequest);
+            var subRequest = await this.CreateSubRequestAsync(request, section);
+            var subResponse = await this.ProcessSubRequestAsync(subRequest);
             responses.Add(subResponse);
         }
 
@@ -49,7 +68,7 @@ public class BatchRequestHandler : BaseRequestHandler, IBatchRequestHandler
             responseContent.Add(batchResponse.ToHttpContent());
         }
 
-        response.Content=responseContent;
+        response.Content = responseContent;
         return new BatchResult(response);
     }
 
@@ -63,18 +82,18 @@ public class BatchRequestHandler : BaseRequestHandler, IBatchRequestHandler
             var methodParam = contentDispositionHeader.Parameters.FirstOrDefault(p => p.Name.Equals("method", StringComparison.OrdinalIgnoreCase));
             var uriParam = contentDispositionHeader.Parameters.FirstOrDefault(p => p.Name.Equals("uri", StringComparison.OrdinalIgnoreCase));
 
-            if (methodParam is not null&&!string.IsNullOrEmpty(methodParam.Value.ToString()))
+            if (methodParam is not null && !string.IsNullOrEmpty(methodParam.Value.ToString()))
             {
-                subRequest.Method=methodParam.Value.ToString();
+                subRequest.Method = methodParam.Value.ToString();
             }
             else
             {
                 throw new InvalidOperationException("The 'method' parameter is missing or invalid in the Content-Disposition header.");
             }
 
-            if (uriParam is not null&&!string.IsNullOrEmpty(uriParam.Value.ToString()))
+            if (uriParam is not null && !string.IsNullOrEmpty(uriParam.Value.ToString()))
             {
-                subRequest.Path=uriParam.Value.ToString();
+                subRequest.Path = uriParam.Value.ToString();
             }
             else
             {
@@ -90,28 +109,27 @@ public class BatchRequestHandler : BaseRequestHandler, IBatchRequestHandler
         {
             var content = await streamReader.ReadToEndAsync();
             var bytes = Encoding.UTF8.GetBytes(content);
-            subRequest.Body=new MemoryStream(bytes);
+            subRequest.Body = new MemoryStream(bytes);
         }
 
         foreach (var header in originalRequest.Headers)
         {
-            subRequest.Headers[header.Key]=header.Value;
+            subRequest.Headers[header.Key] = header.Value;
         }
 
         return subRequest;
     }
 
-
     private async Task<BatchResponseItem> ProcessSubRequestAsync(HttpRequest subRequest)
     {
-        if (subRequest.Path.Value==null)
+        if (subRequest.Path.Value == null)
         {
             return new BatchResponseItem(HttpStatusCode.BadRequest, "Invalid request URL in batch operation.");
         }
 
         var pathSegments = subRequest.Path.Value.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 
-        if (pathSegments.Length<2)
+        if (pathSegments.Length < 2)
         {
             return new BatchResponseItem(HttpStatusCode.BadRequest, "Invalid request URL in batch operation.");
         }
@@ -122,20 +140,20 @@ public class BatchRequestHandler : BaseRequestHandler, IBatchRequestHandler
         switch (subRequest.Method.ToUpperInvariant())
         {
             case "GET":
-                result=await _requestHandlerFactory.CreateQueryHandler().HandleAsync(tableName, subRequest.Query);
+                result = await this.requestHandlerFactory.CreateQueryHandler().HandleAsync(tableName, subRequest.Query);
                 break;
             case "POST":
                 var postPayload = await JsonSerializer.DeserializeAsync<JsonElement>(subRequest.Body);
-                result=await _requestHandlerFactory.CreateInsertHandler().HandleAsync(tableName, postPayload);
+                result = await this.requestHandlerFactory.CreateInsertHandler().HandleAsync(tableName, postPayload);
                 break;
             case "PUT":
                 var key = pathSegments[2];
                 var putPayload = await JsonSerializer.DeserializeAsync<JsonElement>(subRequest.Body);
-                result=await _requestHandlerFactory.CreateUpdateHandler().HandleAsync(tableName, key, putPayload);
+                result = await this.requestHandlerFactory.CreateUpdateHandler().HandleAsync(tableName, key, putPayload);
                 break;
             case "DELETE":
                 var deleteKey = pathSegments[2];
-                result=await _requestHandlerFactory.CreateDeleteHandler().HandleAsync(tableName, deleteKey);
+                result = await this.requestHandlerFactory.CreateDeleteHandler().HandleAsync(tableName, deleteKey);
                 break;
             default:
                 return new BatchResponseItem(HttpStatusCode.BadRequest, $"Invalid request method '{subRequest.Method}' in batch operation.");
@@ -144,4 +162,3 @@ public class BatchRequestHandler : BaseRequestHandler, IBatchRequestHandler
         return new BatchResponseItem(result);
     }
 }
-

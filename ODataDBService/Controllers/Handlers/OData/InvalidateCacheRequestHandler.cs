@@ -1,23 +1,44 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using ODataDBService.Controllers.Handlers.OData.Interfaces;
-using ODataDBService.Services.Repositories;
-
+﻿// <copyright file="InvalidateCacheRequestHandler.cs" company="WindSoft">
+// Copyright (c) WindSoft. All rights reserved.
+// Licensed under the WindSoft license. See LICENSE file in the project root for full license information.
+// </copyright>
 namespace ODataDBService.Controllers.Handlers.OData;
+using Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using Services.Repositories;
+
+/// <summary>
+/// Handles the request to invalidate the cache of the table information for a specific table.
+/// </summary>
 public class InvalidateCacheRequestHandler : BaseRequestHandler, IInvalidateCacheRequestHandler
 {
-    private readonly IODataV4Repository _repository;
+    private readonly IODataV4Repository repository;
 
-    public InvalidateCacheRequestHandler(ILogger<InvalidateCacheRequestHandler> logger, IODataV4Repository repository) : base(logger)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="InvalidateCacheRequestHandler"/> class.
+    /// </summary>
+    /// <param name="logger">The logger.</param>
+    /// <param name="repository">The repository.</param>
+    public InvalidateCacheRequestHandler(ILogger<InvalidateCacheRequestHandler> logger, IODataV4Repository repository)
+        : base(logger)
     {
-        _repository=repository??throw new ArgumentNullException(nameof(repository));
+        this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
     }
 
+    /// <summary>
+    /// Invalidates the cache for a specific table and returns an <see cref="IActionResult"/>.
+    /// </summary>
+    /// <param name="tableName">The name of the table whose cache should be invalidated.</param>
+    /// <returns>
+    /// An <see cref="IActionResult"/> containing a success message if the cache was invalidated successfully,
+    /// or a "not found" message if the specified table was not found in the cache.
+    /// </returns>
     public IActionResult Handle(string tableName)
     {
-        var result = _repository.InvalidateTableInfoCache(tableName);
+        var result = this.repository.InvalidateTableInfoCache(tableName);
 
         return result
-            ? HandleSuccess($"Table info cache for '{tableName}' has been invalidated.")
-            : HandleNotFound($"Table '{tableName}' not found in the cache.");
+            ? this.HandleSuccess($"Table info cache for '{tableName}' has been invalidated.")
+            : this.HandleNotFound($"Table '{tableName}' not found in the cache.");
     }
 }

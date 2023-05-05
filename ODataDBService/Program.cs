@@ -1,14 +1,18 @@
+// <copyright file="Program.cs" company="WindSoft">
+// Copyright (c) WindSoft. All rights reserved.
+// Licensed under the WindSoft license. See LICENSE file in the project root for full license information.
+// </copyright>
+using System.Reflection;
 using DynamicODataToSQL;
 using DynamicODataToSQL.Interfaces;
-using ODataDBService.Controllers.Handlers.OData.Interfaces;
+using Microsoft.OpenApi.Models;
 using ODataDBService.Controllers.Handlers.OData;
+using ODataDBService.Controllers.Handlers.OData.Interfaces;
+using ODataDBService.Controllers.Handlers.OData.Swagger;
 using ODataDBService.Services;
 using ODataDBService.Services.Repositories;
 using SqlKata.Compilers;
-using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System.Reflection;
-using ODataDBService.Controllers.Handlers.OData.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +29,7 @@ builder.Services.AddScoped<IODataToSqlConverter, ODataToSqlConverter>();
 builder.Services.AddScoped<IEdmModelBuilder, EdmModelBuilder>();
 
 // SqlKata compiler
-builder.Services.AddSingleton<Compiler>(new SqlServerCompiler { UseLegacyPagination=false });
+builder.Services.AddSingleton<Compiler>(new SqlServerCompiler { UseLegacyPagination = false });
 
 // ODataV4: Service and repository
 builder.Services.AddScoped<IODataV4Service, ODataV4Service>();
@@ -44,19 +48,19 @@ builder.Services.Configure<SwaggerGenOptions>(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title="OData DB Service",
-        Version="v1",
-        Description="An OData V4/SQL command API for database operations",
-        Contact=new OpenApiContact
+        Title = "OData DB Service",
+        Version = "v1",
+        Description = "An OData V4/SQL command API for database operations",
+        Contact = new OpenApiContact
         {
-            Name="Windsoft Developer Team",
-            Email="dev@windsoft.ro"
+            Name = "Windsoft Developer Team",
+            Email = "dev@windsoft.ro",
         },
-        License=new OpenApiLicense
+        License = new OpenApiLicense
         {
-            Name="Windsoft Software License",
-            Url=new Uri("https://your-license-url.com")
-        }
+            Name = "Windsoft Software License",
+            Url = new Uri("https://your-license-url.com"),
+        },
     });
     options.OperationFilter<ODataOperationFilter>();
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
@@ -69,7 +73,7 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "OData DB Service");
-    c.RoutePrefix="";
+    c.RoutePrefix = string.Empty;
 });
 
 app.UseHttpsRedirection();
