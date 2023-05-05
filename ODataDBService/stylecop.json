@@ -1,0 +1,29 @@
+{
+  "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers.schema.json",
+  "settings": {
+    "documentationRules": {
+      "documentInterfaces": false,
+      "documentPrivateElements": false,
+      "documentInternalElements": false,
+      "documentProtectedElements": false,
+      "documentProtectedInternalElements": false,
+      "documentPrivateFields": false,
+      "companyName": "WindSoft",
+      "copyrightText": "Copyright (c) {companyName}. All rights reserved.\nLicensed under the {licenseName} license. See {licenseFile} file in the project root for full license information.",
+      "variables": {
+        "licenseName": "WindSoft",
+        "licenseFile": "LICENSE"
+      }
+    },
+    "orderingRules": {
+      "usingDirectivesPlacement": "insideNamespace"
+    },
+    "indentation": {
+      "indentationSize": 4,
+      "useTabs": false
+    },
+    "namespaceDeclaration": {
+      "singleLine": true
+    }
+  }
+}

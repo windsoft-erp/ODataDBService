@@ -1,0 +1,5 @@
+<RuleSet Name="CustomRules" ToolsVersion="16">
+    <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
+        <Rule Id="SA1135" Action="None" />
+    </Rules>
+</RuleSet>
