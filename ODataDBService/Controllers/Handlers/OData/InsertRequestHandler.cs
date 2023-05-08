@@ -2,12 +2,14 @@
 // Copyright (c) WindSoft. All rights reserved.
 // Licensed under the WindSoft license. See LICENSE file in the project root for full license information.
 // </copyright>
+
 namespace ODataDBService.Controllers.Handlers.OData;
 using System.Data.SqlClient;
 using System.Text.Json;
 using Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using static Utilities.Constants.RequestHandlerConstants;
 
 /// <summary>
 /// Represents the handler for processing insert requests for a given OData entity set.
@@ -42,17 +44,21 @@ public class InsertRequestHandler : BaseRequestHandler, IInsertRequestHandler
 
             return result switch
             {
-                not null => this.HandleCreated($"Successfully inserted record into table '{tableName}'.", result),
-                _ => this.HandleNotFound($"Error inserting record into table '{tableName}'."),
+                not null => this.HandleCreated(string.Format(InsertSuccessMessageFormat, tableName), result),
+                _ => this.HandleNotFound(string.Format(InsertNotFoundMessageFormat, tableName)),
             };
         }
         catch (Exception ex)
         {
             return ex switch
             {
-                SqlException sqlEx when sqlEx.Message.Contains("Violation of PRIMARY KEY constraint") => this.HandleBadRequest($"Error inserting the record into '{tableName}', PRIMARY KEY violation."),
-                SqlException sqlEx when sqlEx.Message.Contains("Conversion failed") => this.HandleBadRequest($"Error inserting the record into '{tableName}', corrupted data present in request body."),
-                _ => this.HandleError($"Error inserting record into table '{tableName}'.", ex),
+                SqlException sqlEx when sqlEx.Message.Contains(string.Format(SqlExceptionTableNotFound, tableName))
+                    => this.HandleNotFound(string.Format(QueryTableNotFoundFormat, tableName)),
+                SqlException sqlEx when sqlEx.Message.Contains(SqlExceptionPkViolation)
+                    => this.HandleBadRequest(string.Format(InsertBadRequestPkViolationMessageFormat, tableName)),
+                SqlException sqlEx when sqlEx.Message.Contains(SqlExceptionConversionFailed)
+                    => this.HandleBadRequest(string.Format(InsertBadRequestDataTypeErrorMessageFormat, tableName)),
+                _ => this.HandleError(string.Format(InsertNotFoundMessageFormat, tableName), ex),
             };
         }
     }

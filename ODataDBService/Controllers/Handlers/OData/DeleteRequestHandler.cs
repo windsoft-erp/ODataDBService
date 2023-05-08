@@ -2,10 +2,13 @@
 // Copyright (c) WindSoft. All rights reserved.
 // Licensed under the WindSoft license. See LICENSE file in the project root for full license information.
 // </copyright>
+
 namespace ODataDBService.Controllers.Handlers.OData;
+using System.Data.SqlClient;
 using Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using static Utilities.Constants.RequestHandlerConstants;
 
 /// <summary>
 /// Handles delete requests in the OData service.
@@ -29,22 +32,28 @@ public class DeleteRequestHandler : BaseRequestHandler, IDeleteRequestHandler
     /// Handles the delete request asynchronously.
     /// </summary>
     /// <param name="tableName">The table name where the record should be deleted.</param>
-    /// <param name="id">The identifier of the record to delete.</param>
+    /// <param name="key">The identifier of the record to delete.</param>
     /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
-    public async Task<IActionResult> HandleAsync(string tableName, string id)
+    public async Task<IActionResult> HandleAsync(string tableName, string key)
     {
         try
         {
-            var result = await this.oDataV4Service.DeleteAsync(tableName, id);
+            var result = await this.oDataV4Service.DeleteAsync(tableName, key);
 
             return result
-                ? this.HandleSuccess($"Successfully deleted record with ID '{id}' from table '{tableName}'.")
-                : this.HandleNotFound($"Could not find record with ID '{id}' in table '{tableName}'.");
+                ? this.HandleSuccess(string.Format(DeleteSuccessMessageFormat, key, tableName))
+                : this.HandleNotFound(string.Format(DeleteNotFoundMessageFormat, key, tableName));
         }
         catch (Exception ex)
         {
-            var errorMessage = $"Error deleting record with ID '{id}' from table '{tableName}'.";
-            return this.HandleError(errorMessage, ex);
+            return ex switch
+            {
+                SqlException sqlEx when sqlEx.Message.Contains(SqlExceptionConversionFailed) =>
+                    this.HandleBadRequest(string.Format(BadRequestMessageDataTypeFormat, key, tableName)),
+                ArgumentException argEx when argEx.Message.Contains(string.Format(ArgumentExceptionNoPrimaryKeyFormat, tableName)) =>
+                    this.HandleNotFound(string.Format(NotFoundMessagePrimaryKeyFormat, tableName)),
+                _ => this.HandleError(string.Format(DeleteErrorMessageFormat, key, tableName), ex),
+            };
         }
     }
 }

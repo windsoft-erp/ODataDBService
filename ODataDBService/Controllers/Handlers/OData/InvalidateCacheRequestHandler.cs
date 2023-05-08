@@ -2,10 +2,12 @@
 // Copyright (c) WindSoft. All rights reserved.
 // Licensed under the WindSoft license. See LICENSE file in the project root for full license information.
 // </copyright>
+
 namespace ODataDBService.Controllers.Handlers.OData;
 using Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Services.Repositories;
+using static Utilities.Constants.RequestHandlerConstants;
 
 /// <summary>
 /// Handles the request to invalidate the cache of the table information for a specific table.
@@ -38,7 +40,7 @@ public class InvalidateCacheRequestHandler : BaseRequestHandler, IInvalidateCach
         var result = this.repository.InvalidateTableInfoCache(tableName);
 
         return result
-            ? this.HandleSuccess($"Table info cache for '{tableName}' has been invalidated.")
-            : this.HandleNotFound($"Table '{tableName}' not found in the cache.");
+            ? this.HandleSuccess(string.Format(InvalidateCacheSuccessMessageFormat, tableName))
+            : this.HandleNotFound(string.Format(InvalidateCacheNotFoundMessageFormat, tableName));
     }
 }

@@ -10,8 +10,8 @@ using System.Text;
 using System.Text.Json;
 using Dapper;
 using DynamicODataToSQL;
-using Extensions;
 using Models;
+using Utilities.Extensions;
 
 /// <summary>
 /// Represents a repository for handling OData v4 requests and responses.
@@ -70,12 +70,21 @@ public class ODataV4Repository : IODataV4Repository
     /// </returns>
     public async Task<dynamic?> QueryByExtractedIdAsync(string tableName, JsonElement data)
     {
-        var tableInfo = this.GetTableInfo(tableName);
-
-        if (tableInfo.PrimaryKey != null && data.TryGetProperty(tableInfo.PrimaryKey, out var primaryKeyValue) && primaryKeyValue.ValueKind != JsonValueKind.Null)
+        try
         {
-            // If the primary key is included in the data and is not null, use it instead of the passed in key
-            return await this.QueryByIdAsync(tableName, primaryKeyValue.ToString());
+            var tableInfo = this.GetTableInfo(tableName);
+
+            if (tableInfo.PrimaryKey != null && data.TryGetProperty(tableInfo.PrimaryKey, out var primaryKeyValue) &&
+                primaryKeyValue.ValueKind != JsonValueKind.Null)
+            {
+                // If the primary key is included in the data and is not null, use it instead of the passed in key
+                return await this.QueryByIdAsync(tableName, primaryKeyValue.ToString());
+            }
+        }
+        catch (ArgumentException ex) when (ex.Message == $"Could not find primary key for table {tableName}")
+        {
+            // Ignoring this exception as there is no primary key for the given table
+            // and this is expected behavior in some cases.
         }
 
         return null;

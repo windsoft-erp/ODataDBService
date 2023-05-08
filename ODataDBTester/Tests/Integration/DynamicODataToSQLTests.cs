@@ -1,13 +1,13 @@
 ﻿using DynamicODataToSQL;
 using SqlKata.Compilers;
 
-namespace ODataDBTester.Tests
+namespace ODataDBTester.Tests.Integration
 {
     [TestFixture]
     public class ODataToSqlConverterTests
     {
         [TestFixture]
-        public class SqlConvertert
+        public class SqlConverter
         {
             private EdmModelBuilder _edmModelBuilder;
             private SqlServerCompiler _sqlServerCompiler;

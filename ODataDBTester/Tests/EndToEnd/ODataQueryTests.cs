@@ -14,7 +14,7 @@ using ODataDBService.Controllers.Handlers.OData.Interfaces;
 using ODataDBService.Controllers.Handlers.OData;
 using Microsoft.Extensions.Primitives;
 
-namespace ODataDBTester.Tests
+namespace ODataDBTester.Tests.EndToEnd
 {
     [TestFixture]
     public class ODataQueryTests
@@ -36,6 +36,7 @@ namespace ODataDBTester.Tests
             _oDataV4Repository = new ODataV4Repository(config, _oDataToSqlConverter);
             _oDataV4Service = new ODataV4Service(_oDataV4Repository);
             var logger = Mock.Of<ILogger<QueryRequestHandler>>();
+            var loggerById = Mock.Of<ILogger<QueryByIdRequestHandler>>();
 
             var requestHandlerFactoryMock = new Mock<IODataRequestHandlerFactory>();
 
@@ -47,6 +48,9 @@ namespace ODataDBTester.Tests
             httpContextAccessorMock.Setup(accessor => accessor.HttpContext).Returns(new DefaultHttpContext());
 
             requestHandlerFactoryMock.Setup(factory => factory.CreateQueryHandler()).Returns(new QueryRequestHandler(logger, _oDataV4Service, httpContextAccessorMock.Object, urlHelperFactoryMock.Object));
+            
+            requestHandlerFactoryMock.Setup(factory => factory.CreateQueryByIdHandler()).Returns(
+                new QueryByIdRequestHandler(loggerById, _oDataV4Service));
 
             _controller = new ODataV4Controller(requestHandlerFactoryMock.Object);
             _controller.ControllerContext = new ControllerContext
@@ -159,7 +163,7 @@ namespace ODataDBTester.Tests
             // Assert
             var notFoundObjectResult = result as NotFoundObjectResult;
             Assert.NotNull(notFoundObjectResult);
-            Assert.That(notFoundObjectResult.Value, Is.EqualTo($"Table {tableName} does not exist."));
+            Assert.That(notFoundObjectResult.Value, Is.EqualTo($"Table '{tableName}' does not exist."));
         }
 
         [Test]
@@ -204,6 +208,62 @@ namespace ODataDBTester.Tests
             var badRequestResult = result as BadRequestObjectResult;
             Assert.NotNull(badRequestResult);
             Assert.That(badRequestResult.Value, Is.EqualTo("Syntax error at position 11 in 'FirstName e!q 'Nancy''."));
+        }
+
+        [Test]
+        public async Task QueryById_WithValidData_ShouldReturnAResult()
+        {
+            // Arrange
+            var tableName = "Employees";
+            var employeeID = 1;
+            var expected = new List<object>
+            {
+                new Dictionary<string, object> {{"EmployeeID", 1}, {"FirstName", "Nancy"}, {"LastName", "Davolio"}, {"Title", "Sales Representative"}, {"BirthDate", new DateTime(1968, 12, 8)}, {"HireDate", new DateTime(1992, 5, 1)}, {"City", "Seattle"}, {"Country", "USA"}, {"TotalOrders", 0}}
+            };
+            var result = await _controller.QueryByIdAsync(tableName, employeeID.ToString());
+            // Assert
+            var okResult = result as OkObjectResult;
+            Assert.NotNull(okResult);
+            Assert.That(okResult.Value, Is.EqualTo(expected));
+        }
+        
+        [Test]
+        public async Task QueryById_WitInvalidId_ShouldReturnNotFound()
+        {
+            // Arrange
+            var tableName = "Employees";
+            var employeeID = 22;
+            var result = await _controller.QueryByIdAsync(tableName, employeeID.ToString());
+            // Assert
+            var notFoundObjectResult = result as NotFoundObjectResult;
+            Assert.NotNull(notFoundObjectResult);
+            Assert.That(notFoundObjectResult.Value, Is.EqualTo($"Could not retrieve record with key '{employeeID.ToString()}' from table '{tableName}'."));
+        }
+        
+        [Test]
+        public async Task QueryById_WitInvalidIdDataType_ShouldReturnBadRequest()
+        {
+            // Arrange
+            var tableName = "Employees";
+            var employeeID = "InvalidID";
+            var result = await _controller.QueryByIdAsync(tableName, employeeID);
+            // Assert
+            var BadRequestObjectResult = result as BadRequestObjectResult;
+            Assert.NotNull(BadRequestObjectResult);
+            Assert.That(BadRequestObjectResult.Value, Is.EqualTo($"Could not retrieve record with requested key data type '{employeeID}' from table '{tableName}'."));
+        }
+        
+        [Test]
+        public async Task QueryById_WitInvalidTable_ShouldReturnNotFound()
+        {
+            // Arrange
+            var tableName = "EasyThere";
+            var employeeID = "1";
+            var result = await _controller.QueryByIdAsync(tableName, employeeID);
+            // Assert
+            var notFoundObjectResult = result as NotFoundObjectResult;
+            Assert.NotNull(notFoundObjectResult);
+            Assert.That(notFoundObjectResult.Value, Is.EqualTo($"Could not retrieve table '{tableName}' with primary key of requested data type."));
         }
     }
 }

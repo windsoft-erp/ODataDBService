@@ -2,11 +2,14 @@
 // Copyright (c) WindSoft. All rights reserved.
 // Licensed under the WindSoft license. See LICENSE file in the project root for full license information.
 // </copyright>
+
 namespace ODataDBService.Controllers.Handlers.OData;
+using System.Data.SqlClient;
 using System.Text.Json;
 using Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using static Utilities.Constants.RequestHandlerConstants;
 
 /// <summary>
 /// Represents a class that handles HTTP PATCH requests to update existing records in the database.
@@ -38,7 +41,7 @@ public class UpdateRequestHandler : BaseRequestHandler, IUpdateRequestHandler
     /// Handles an HTTP PATCH request to update an existing record in the database.
     /// </summary>
     /// <param name="tableName">The name of the table containing the record to update.</param>
-    /// <param name="id">The ID of the record to update.</param>
+    /// <param name="key">The ID of the record to update.</param>
     /// <param name="data">The JSON data representing the updated record.</param>
     /// <returns>An <see cref="IActionResult"/> representing the response to the request.</returns>
     /// <remarks>
@@ -46,20 +49,26 @@ public class UpdateRequestHandler : BaseRequestHandler, IUpdateRequestHandler
     /// representing the updated record. The ID of the record to update is passed in as a parameter. The method returns an
     /// <see cref="IActionResult"/> indicating the success or failure of the update operation.
     /// </remarks>
-    public async Task<IActionResult> HandleAsync(string tableName, string id, JsonElement data)
+    public async Task<IActionResult> HandleAsync(string tableName, string key, JsonElement data)
     {
         try
         {
-            var result = await this.oDataV4Service.UpdateAsync(tableName, id, data);
+            var result = await this.oDataV4Service.UpdateAsync(tableName, key, data);
 
             return result
-                ? this.HandleSuccess($"Successfully updated record with ID '{id}' in table '{tableName}'.")
-                : this.HandleNotFound($"Could not find record with ID '{id}' in table '{tableName}'.");
+                ? this.HandleSuccess(string.Format(UpdateSuccessMessageFormat, key, tableName))
+                : this.HandleNotFound(string.Format(UpdateNotFoundMessageFormat, key, tableName));
         }
         catch (Exception ex)
         {
-            var errorMessage = $"Error updating record with ID '{id}' in table '{tableName}'.";
-            return this.HandleError(errorMessage, ex);
+            return ex switch
+            {
+                SqlException sqlEx when sqlEx.Message.Contains(SqlExceptionConversionFailed) =>
+                    this.HandleBadRequest(string.Format(BadRequestMessageDataTypeFormat, key, tableName)),
+                ArgumentException argEx when argEx.Message.Contains(string.Format(ArgumentExceptionNoPrimaryKeyFormat, tableName)) =>
+                    this.HandleNotFound(string.Format(NotFoundMessagePrimaryKeyFormat, tableName)),
+                _ => this.HandleError(string.Format(UpdateErrorMessageFormat, key, tableName), ex),
+            };
         }
     }
 }

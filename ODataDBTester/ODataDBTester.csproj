@@ -40,4 +40,8 @@
     <ProjectReference Include="..\ODataDBService\ODataDBService.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Tests\" />
+  </ItemGroup>
+
 </Project>

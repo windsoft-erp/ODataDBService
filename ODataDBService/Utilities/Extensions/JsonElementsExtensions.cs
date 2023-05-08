@@ -2,7 +2,7 @@
 // Copyright (c) WindSoft. All rights reserved.
 // Licensed under the WindSoft license. See LICENSE file in the project root for full license information.
 // </copyright>
-namespace ODataDBService.Services.Extensions;
+namespace ODataDBService.Utilities.Extensions;
 using System.Text.Json;
 
 /// <summary>

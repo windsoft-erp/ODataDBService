@@ -31,7 +31,7 @@ public class ODataRequestHandlerFactory : IODataRequestHandlerFactory
     /// Creates a new instance of the <see cref="IQueryByIdRequestHandler"/> class.
     /// </summary>
     /// <returns>The new <see cref="IQueryByIdRequestHandler"/> instance.</returns>
-    public IQueryByIdRequestHandler CreateQueryByIdRequestHandler() => this.serviceProvider.GetRequiredService<IQueryByIdRequestHandler>();
+    public IQueryByIdRequestHandler CreateQueryByIdHandler() => this.serviceProvider.GetRequiredService<IQueryByIdRequestHandler>();
 
     /// <summary>
     /// Creates a new instance of the <see cref="IDeleteRequestHandler"/> class.
@@ -61,5 +61,5 @@ public class ODataRequestHandlerFactory : IODataRequestHandlerFactory
     /// Creates a new instance of the <see cref="IBatchRequestHandler"/> class.
     /// </summary>
     /// <returns>The new <see cref="IBatchRequestHandler"/> instance.</returns>
-    public IBatchRequestHandler CreateBatchRequestHandler() => this.serviceProvider.GetRequiredService<IBatchRequestHandler>();
+    public IBatchRequestHandler CreateBatchHandler() => this.serviceProvider.GetRequiredService<IBatchRequestHandler>();
 }

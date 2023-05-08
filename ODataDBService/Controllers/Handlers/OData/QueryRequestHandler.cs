@@ -2,6 +2,7 @@
 // Copyright (c) WindSoft. All rights reserved.
 // Licensed under the WindSoft license. See LICENSE file in the project root for full license information.
 // </copyright>
+
 namespace ODataDBService.Controllers.Handlers.OData;
 
 using System.Data.SqlClient;
@@ -13,6 +14,8 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.OData;
 using Models;
 using Services;
+using static Utilities.Constants.ODataQueryConstants;
+using static Utilities.Constants.RequestHandlerConstants;
 
 /// <summary>
 /// Handles OData query requests for a specific table.
@@ -54,9 +57,19 @@ public class QueryRequestHandler : BaseRequestHandler, IQueryRequestHandler
     {
         try
         {
-            if (query.Keys.Except(new[] { "$select", "$filter", "$orderby", "$top", "$skip", "apply" }, StringComparer.OrdinalIgnoreCase).Any())
+            if (query.Keys.Except(
+                    new[]
+                    {
+                        QueryString.Select,
+                        QueryString.Filter,
+                        QueryString.OrderBy,
+                        QueryString.Top,
+                        QueryString.Skip,
+                        QueryString.Apply,
+                    },
+                    StringComparer.OrdinalIgnoreCase).Any())
             {
-                return this.HandleBadRequest($"Invalid parameters in query string: {string.Join(",", query.Keys)}.");
+                return this.HandleBadRequest(string.Format(QueryInvalidParametersFormat, string.Join(",", query.Keys)));
             }
 
             var oDataQuery = this.BuildODataQuery(tableName, query);
@@ -64,7 +77,7 @@ public class QueryRequestHandler : BaseRequestHandler, IQueryRequestHandler
 
             return result switch
             {
-                { Count: 0 } => this.HandleNoContent($"No records found for '{tableName}'."),
+                { Count: 0 } => this.HandleNoContent(string.Format(QueryNoContentFormat, tableName)),
                 var queryResult => this.HandleQuerySuccess(queryResult, tableName, oDataQuery),
             };
         }
@@ -72,10 +85,12 @@ public class QueryRequestHandler : BaseRequestHandler, IQueryRequestHandler
         {
             return ex switch
             {
-                SqlException sqlEx when sqlEx.Message.Contains($"Invalid object name '{tableName}'") => this.HandleNotFound($"Table {tableName} does not exist."),
-                SqlException sqlEx when sqlEx.Message.Contains("Invalid column name") => this.HandleNotFound(ex.Message),
+                SqlException sqlEx when sqlEx.Message.Contains(string.Format(SqlExceptionTableNotFound, tableName))
+                    => this.HandleNotFound(string.Format(QueryTableNotFoundFormat, tableName)),
+                SqlException sqlEx when sqlEx.Message.Contains(SqlExceptionInvalidColumnName)
+                    => this.HandleNotFound(ex.Message),
                 ODataException odataEx => this.HandleBadRequest(odataEx.Message),
-                _ => this.HandleError($"Error retrieving records for '{tableName}.'", ex),
+                _ => this.HandleError(string.Format(QueryErrorMessageFormat, tableName), ex),
             };
         }
     }
@@ -84,13 +99,13 @@ public class QueryRequestHandler : BaseRequestHandler, IQueryRequestHandler
     {
         var isLastPage = queryResult.Count <= oDataQuery.Top;
         queryResult.NextLink = isLastPage ? null : this.urlHelper.Link("QueryRecords", new { tableName })
-            .SetQueryParam("$select", oDataQuery.Select)
-            .SetQueryParam("$filter", oDataQuery.Filter)
-            .SetQueryParam("$apply", oDataQuery.Apply)
-            .SetQueryParam("$orderby", oDataQuery.OrderBy)
-            .SetQueryParam("$top", oDataQuery.Top)
-            .SetQueryParam("$skip", oDataQuery.Skip + oDataQuery.Top);
-        return this.HandleSuccess($"Successfully retrieved records for '{tableName}'.", queryResult);
+            .SetQueryParam(QueryString.Select, oDataQuery.Select)
+            .SetQueryParam(QueryString.Filter, oDataQuery.Filter)
+            .SetQueryParam(QueryString.Apply, oDataQuery.Apply)
+            .SetQueryParam(QueryString.OrderBy, oDataQuery.OrderBy)
+            .SetQueryParam(QueryString.Top, oDataQuery.Top)
+            .SetQueryParam(QueryString.Skip, oDataQuery.Skip + oDataQuery.Top);
+        return this.HandleSuccess(string.Format(QuerySuccessMessageFormat, tableName), queryResult);
     }
 
     private ODataQuery BuildODataQuery(string tableName, IQueryCollection query)
@@ -98,12 +113,12 @@ public class QueryRequestHandler : BaseRequestHandler, IQueryRequestHandler
         return new ODataQuery
         {
             TableName = tableName,
-            Select = query["$select"].ToString() ?? string.Empty,
-            Filter = query["$filter"].ToString() ?? string.Empty,
-            Apply = query["apply"].ToString() ?? string.Empty,
-            OrderBy = query["$orderby"].ToString() ?? string.Empty,
-            Top = int.TryParse(query["$top"].ToString(), out int topValue) ? topValue : 10,
-            Skip = int.TryParse(query["$skip"].ToString(), out int skipValue) ? skipValue : 0,
+            Select = query[QueryString.Select].ToString() ?? string.Empty,
+            Filter = query[QueryString.Filter].ToString() ?? string.Empty,
+            Apply = query[QueryString.Apply].ToString() ?? string.Empty,
+            OrderBy = query[QueryString.OrderBy].ToString() ?? string.Empty,
+            Top = int.TryParse(query[QueryString.Top].ToString(), out int topValue) ? topValue : 10,
+            Skip = int.TryParse(query[QueryString.Skip].ToString(), out int skipValue) ? skipValue : 0,
         };
     }
 }

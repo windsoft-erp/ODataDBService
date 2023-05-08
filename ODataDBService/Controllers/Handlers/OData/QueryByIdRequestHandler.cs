@@ -2,10 +2,13 @@
 // Copyright (c) WindSoft. All rights reserved.
 // Licensed under the WindSoft license. See LICENSE file in the project root for full license information.
 // </copyright>
+
 namespace ODataDBService.Controllers.Handlers.OData;
+using System.Data.SqlClient;
 using Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using static Utilities.Constants.RequestHandlerConstants;
 
 /// <summary>
 /// Handles OData query by ID requests.
@@ -40,16 +43,22 @@ public class QueryByIdRequestHandler : BaseRequestHandler, IQueryByIdRequestHand
         {
             var result = await this.oDataV4Service.QueryByIdAsync(tableName, key);
 
-            return result switch
+            return result.Count switch
             {
-                not null => this.HandleCreated($"Successfully got record from table '{tableName}'.", result),
-                _ => this.HandleNotFound($"Error getting record from table '{tableName}'."),
+                > 0 => this.HandleSuccess(string.Format(QueryByIdSuccessMessageFormat, tableName), result),
+                _ => this.HandleNotFound(string.Format(NotFoundMessageFormat, key, tableName)),
             };
         }
         catch (Exception ex)
         {
-            var errorMessage = $"Error getting record from table '{tableName}'.";
-            return this.HandleError(errorMessage, ex);
+            return ex switch
+            {
+                SqlException sqlEx when sqlEx.Message.Contains(SqlExceptionConversionFailed) =>
+                    this.HandleBadRequest(string.Format(BadRequestMessageDataTypeFormat, key, tableName)),
+                ArgumentException argEx when argEx.Message.Contains(string.Format(ArgumentExceptionNoPrimaryKeyFormat, tableName)) =>
+                    this.HandleNotFound(string.Format(NotFoundMessagePrimaryKeyFormat, tableName)),
+                _ => this.HandleError(string.Format(QueryByIdErrorMessageFormat, key, tableName), ex),
+            };
         }
     }
 }

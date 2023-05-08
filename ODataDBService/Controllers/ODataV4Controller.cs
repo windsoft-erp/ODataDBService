@@ -78,7 +78,7 @@ public class ODataV4Controller : ControllerBase
     /// <returns>An IActionResult indicating the success or failure of the operation.</returns>
     [HttpGet("{tableName}({key})")]
     public Task<IActionResult> QueryByIdAsync(string tableName, string key) =>
-        this.requestHandlerFactory.CreateQueryByIdRequestHandler().HandleAsync(tableName, key);
+        this.requestHandlerFactory.CreateQueryByIdHandler().HandleAsync(tableName, key);
 
     /// <summary>
     /// Deletes a record from the specified table by key.
@@ -200,5 +200,5 @@ public class ODataV4Controller : ControllerBase
     /// </returns>
     [HttpPost("$batch")]
     public Task<IActionResult> BatchAsync() =>
-        this.requestHandlerFactory.CreateBatchRequestHandler().ProcessBatchRequestAsync(this.Request);
+        this.requestHandlerFactory.CreateBatchHandler().ProcessBatchRequestAsync(this.Request);
 }

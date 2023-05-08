@@ -11,7 +11,7 @@ public interface IODataRequestHandlerFactory
 {
     IQueryRequestHandler CreateQueryHandler();
 
-    IQueryByIdRequestHandler CreateQueryByIdRequestHandler();
+    IQueryByIdRequestHandler CreateQueryByIdHandler();
 
     IDeleteRequestHandler CreateDeleteHandler();
 
@@ -21,5 +21,5 @@ public interface IODataRequestHandlerFactory
 
     IInvalidateCacheRequestHandler CreateInvalidateCacheHandler();
 
-    IBatchRequestHandler CreateBatchRequestHandler();
+    IBatchRequestHandler CreateBatchHandler();
 }
