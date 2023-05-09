@@ -63,7 +63,7 @@ public class ODataInsertTests
     }
     
     [Test]
-    public async Task InsertAsyncWithValidData_ShouldCreateNewEntry()
+    public async Task InsertAsync_WithValidData_ShouldCreateNewEntry()
     {
         // Arrange
         var expectedId = new Random().Next(1000, 5000);
@@ -114,7 +114,7 @@ public class ODataInsertTests
     
     
         [Test]
-    public async Task InsertAsyncWithValidDataOnTableWithNoId_ShouldCreateNewEntry()
+    public async Task InsertAsync_WithValidDataOnTableWithNoId_ShouldCreateNewEntry()
     {
         // Arrange
         var expectedCustomerName = "John";
@@ -150,7 +150,7 @@ public class ODataInsertTests
     }
     
         [Test]
-    public async Task InsertAsyncSameEntryTwice_ShouldReturnBadRequest()
+    public async Task InsertAsync_SameEntryTwice_ShouldReturnBadRequest()
     {
         // Arrange
         var expectedId = new Random().Next(1000, 5000);
@@ -206,7 +206,7 @@ public class ODataInsertTests
     }
     
     [Test]
-    public async Task InsertAsyncWithInvalidData_ShouldReturnBadRequest()
+    public async Task InsertAsync_WithInvalidData_ShouldReturnBadRequest()
     {
         // Arrange
         var expectedId = new Random().Next(1000, 5000);
@@ -246,7 +246,7 @@ public class ODataInsertTests
     }
     
     [Test]
-    public async Task InsertAsyncInvalidTable_ShouldReturnNotFound()
+    public async Task InsertAsync_InvalidTable_ShouldReturnNotFound()
     {
         // Arrange
         var expectedId = new Random().Next(1000, 5000);

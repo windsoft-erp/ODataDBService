@@ -8,7 +8,7 @@ namespace ODataDBService.Utilities.Constants;
 internal static class RequestHandlerConstants
 {
     public const string NotFoundMessageFormat = "Could not retrieve record with key '{0}' from table '{1}'.";
-    public const string BadRequestMessageDataTypeFormat = "Could not retrieve record with requested key data type '{0}' from table '{1}'.";
+    public const string BadRequestMessageDataTypeFormat = "Could not retrieve record with requested data type, key '{0}' from table '{1}'.";
     public const string NotFoundMessagePrimaryKeyFormat = "Could not retrieve table '{0}' with primary key of requested data type.";
     public const string QueryByIdSuccessMessageFormat = "Successfully retrieved record from table '{0}'.";
     public const string QueryByIdErrorMessageFormat = "Error retrieving record with key '{0}' from table '{1}'.";

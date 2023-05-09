@@ -125,11 +125,11 @@ public class ODataDeleteTests
         var result = await _controller.DeleteAsync(tableName, expectedId.ToString());
         var BadRequestObjectResult = result as BadRequestObjectResult;
         Assert.NotNull(BadRequestObjectResult);
-        Assert.That(BadRequestObjectResult.Value, Is.EqualTo($"Could not retrieve record with requested key data type '{expectedId}' from table '{tableName}'."));
+        Assert.That(BadRequestObjectResult.Value, Is.EqualTo($"Could not retrieve record with requested data type, key '{expectedId}' from table '{tableName}'."));
     }
     
     [Test]
-    public async Task DeleteAsync_InvalidTable_ShouldReturnBadRequest()
+    public async Task DeleteAsync_InvalidTable_ShouldReturnNotFound()
     {
         // Arrange
         var tableName = "FakeTable";
@@ -141,6 +141,4 @@ public class ODataDeleteTests
         Assert.NotNull(notFoundObjectResult);
         Assert.That(notFoundObjectResult.Value, Is.EqualTo($"Could not retrieve table '{tableName}' with primary key of requested data type."));
     }
-    
-    
 }

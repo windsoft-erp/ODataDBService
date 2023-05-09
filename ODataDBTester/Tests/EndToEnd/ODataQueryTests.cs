@@ -250,7 +250,7 @@ namespace ODataDBTester.Tests.EndToEnd
             // Assert
             var BadRequestObjectResult = result as BadRequestObjectResult;
             Assert.NotNull(BadRequestObjectResult);
-            Assert.That(BadRequestObjectResult.Value, Is.EqualTo($"Could not retrieve record with requested key data type '{employeeID}' from table '{tableName}'."));
+            Assert.That(BadRequestObjectResult.Value, Is.EqualTo($"Could not retrieve record with requested data type, key '{employeeID}' from table '{tableName}'."));
         }
         
         [Test]
