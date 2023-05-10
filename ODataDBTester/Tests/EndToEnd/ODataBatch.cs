@@ -111,6 +111,8 @@ public class ODataBatch
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.IsInstanceOf<BatchResult>(result);
+        Assert.IsInstanceOf<OkObjectResult>(result);
+        var okObject = result as OkObjectResult;
+        Assert.IsInstanceOf<BatchResult>(okObject.Value);
     }
 }
