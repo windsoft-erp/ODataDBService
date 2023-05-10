@@ -178,13 +178,13 @@ public class BatchRequestHandler : BaseRequestHandler, IBatchRequestHandler
                 result = await this.requestHandlerFactory.CreateInsertHandler().HandleAsync(tableName, postPayload);
                 break;
             case "PUT":
-                var key = pathSegments[2];
+                var key = int.Parse(match.Groups[2].Value);
                 var putPayload = await JsonSerializer.DeserializeAsync<JsonElement>(subRequest.Body);
-                result = await this.requestHandlerFactory.CreateUpdateHandler().HandleAsync(tableName, key, putPayload);
+                result = await this.requestHandlerFactory.CreateUpdateHandler().HandleAsync(tableName, key.ToString(), putPayload);
                 break;
             case "DELETE":
-                var deleteKey = pathSegments[2];
-                result = await this.requestHandlerFactory.CreateDeleteHandler().HandleAsync(tableName, deleteKey);
+                var deleteKey = int.Parse(match.Groups[2].Value);
+                result = await this.requestHandlerFactory.CreateDeleteHandler().HandleAsync(tableName, deleteKey.ToString());
                 break;
             default:
                 return new BatchResponseItem(HttpStatusCode.BadRequest, $"Invalid request method '{subRequest.Method}' in batch operation.");
