@@ -77,7 +77,6 @@ public class SqlCommandService : ISqlCommandService
 
     private void ValidateParameters(IEnumerable<StoredProcedureParameter> expectedParameters, Dictionary<string, object?> parameters)
     {
-        // Validate that each expected parameter is present in the input
         foreach (var expectedParameter in expectedParameters)
         {
             if (expectedParameter.Name is null)
@@ -97,36 +96,31 @@ public class SqlCommandService : ISqlCommandService
 
             var expectedType = this.GetSqlDbType(expectedParameter.Type);
             var clrType = this.GetClrType(expectedType);
+
             if (parameterValue == null)
             {
                 continue;
             }
 
-            // Convert the parameter value to the expected .NET type
-            var parameterType = parameterValue.GetType();
-            if (parameterType != clrType)
+            switch (parameterValue)
             {
-                if (clrType == typeof(int) && parameterType == typeof(decimal))
-                {
-                    // Try to convert decimal to int
-                    var intValue = (int)(decimal)parameterValue;
-                    parameters[expectedParameter.Name.Replace("@", string.Empty)] = intValue;
-                }
-                else if (clrType == typeof(DateTime) && parameterType == typeof(string))
-                {
-                    // Try to convert string to DateTime
-                    var stringValue = (string)parameterValue;
+                case int _ when clrType == typeof(int):
+                    break;
+                case decimal decimalValue when clrType == typeof(int):
+                    parameters[expectedParameter.Name.Replace("@", string.Empty)] = (int)decimalValue;
+                    break;
+                case string stringValue when clrType == typeof(DateTime):
                     if (!DateTime.TryParse(stringValue, out var dateTimeValue))
                     {
                         throw new ArgumentException($"Cannot convert '{stringValue}' to DateTime for procedure parameter '{expectedParameter.Name}'.");
                     }
 
                     parameters[expectedParameter.Name.Replace("@", string.Empty)] = dateTimeValue;
-                }
-                else
-                {
-                    throw new ArgumentException($"Cannot convert '{parameterType}' to '{clrType}' for procedure parameter '{expectedParameter.Name}'.");
-                }
+                    break;
+                case var _ when parameterValue.GetType() == clrType:
+                    break;
+                default:
+                    throw new ArgumentException($"Cannot convert '{parameterValue.GetType()}' to '{clrType}' for procedure parameter '{expectedParameter.Name}'.");
             }
         }
     }
