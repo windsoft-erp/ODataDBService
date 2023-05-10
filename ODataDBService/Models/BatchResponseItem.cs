@@ -18,41 +18,18 @@ public class BatchResponseItem
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="BatchResponseItem"/> class
-    /// with the specified status code, reason phrase, and optional content.
+    /// with the specified status code, reason phrase, content, and result object.
     /// </summary>
     /// <param name="statusCode">The HTTP status code of the response.</param>
     /// <param name="reasonPhrase">The reason phrase associated with the status code.</param>
     /// <param name="content">The content of the response as an <see cref="HttpContent"/> instance.</param>
-    public BatchResponseItem(HttpStatusCode statusCode, string reasonPhrase, HttpContent? content = null)
+    /// <param name="result">The result object returned by the sub-request.</param>
+    public BatchResponseItem(HttpStatusCode statusCode, string reasonPhrase, HttpContent? content = null, object? result = null)
     {
         this.StatusCode = statusCode;
         this.ReasonPhrase = reasonPhrase;
         this.Content = content;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BatchResponseItem"/> class
-    /// using an <see cref="IActionResult"/> instance.
-    /// </summary>
-    /// <param name="result">The <see cref="IActionResult"/> instance representing the response.</param>
-    /// <exception cref="ArgumentException">Thrown when the specified <see cref="IActionResult"/> is not supported.</exception>
-    public BatchResponseItem(IActionResult result)
-    {
-        this.StatusCode = result switch
-        {
-            ObjectResult objResult => (HttpStatusCode)objResult.StatusCode.GetValueOrDefault((int)HttpStatusCode.OK),
-            StatusCodeResult statusCodeResult => (HttpStatusCode)statusCodeResult.StatusCode,
-            _ => throw new ArgumentException("Unsupported IActionResult type.", nameof(result)),
-        };
-
-        this.ReasonPhrase = this.StatusCode.ToString();
-
-        if (result is ObjectResult objectResult)
-        {
-            var value = objectResult.Value;
-            this.Content = new StringContent(value?.ToString() ?? string.Empty);
-            this.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-        }
+        this.Result = result;
     }
 
     private HttpStatusCode StatusCode { get; }
@@ -60,6 +37,8 @@ public class BatchResponseItem
     private string ReasonPhrase { get; }
 
     private HttpContent? Content { get; }
+
+    private object? Result { get; }
 
     /// <summary>
     /// Converts the <see cref="BatchResponseItem"/> instance to an <see cref="HttpContent"/> instance.
@@ -70,14 +49,20 @@ public class BatchResponseItem
         var content = new StringContent($"HTTP/1.1 {(int)this.StatusCode} {this.ReasonPhrase}\r\n");
         if (this.Content != null)
         {
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/http")
-            {
-                Parameters = { new NameValueHeaderValue("msgtype", "response") },
-            };
-
-            content.Headers.Add("Content-Transfer-Encoding", "binary");
-            content.Headers.Add("Content-ID", Guid.NewGuid().ToString());
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            var contentString = this.Content.ReadAsStringAsync().Result;
+            contentString = contentString.Trim('\"');
+            contentString = $"{{\"value\": {contentString}}}";
+            content = new StringContent(contentString);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
         }
+
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/http")
+        {
+            Parameters = { new NameValueHeaderValue("msgtype", "response") },
+        };
+        content.Headers.Add("Content-Transfer-Encoding", "binary");
+        content.Headers.Add("Content-ID", Guid.NewGuid().ToString());
 
         return content;
     }

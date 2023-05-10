@@ -11,6 +11,7 @@ using Moq;
 using ODataDBService.Controllers;
 using ODataDBService.Controllers.Handlers.OData;
 using ODataDBService.Controllers.Handlers.OData.Interfaces;
+using ODataDBService.Models;
 using ODataDBService.Services;
 using ODataDBService.Services.Repositories;
 using SqlKata.Compilers;
@@ -72,34 +73,44 @@ public class ODataBatch
             HttpContext = httpContextAccessorMock.Object.HttpContext
         };
     }
+    
     [Test]
-    public async Task BatchEndpoint_WithValidData_ShouldReturnExpectedResults()
+    public async Task BatchAsync_ValidData_ShouldReturnResults()
     {
         // Arrange
-        var batchBoundary = "batch_boundary";
+        var batchBoundary = "batch_" + Guid.NewGuid().ToString();
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.ContentType = $"multipart/mixed; boundary={batchBoundary}";
+        httpContext.Request.Method = "POST";
+
         var batchContent = new StringBuilder()
-            .AppendLine($"--{batchBoundary}")
+            .AppendLine("--" + batchBoundary)
             .AppendLine("Content-Type: application/http")
             .AppendLine("Content-Transfer-Encoding: binary")
             .AppendLine()
-            .AppendLine("GET /ODataV4/Employees(1) HTTP/1.1")
-            .AppendLine($"--{batchBoundary}--")
+            .AppendLine("GET /ODataV4/employee(1) HTTP/1.1")
+            .AppendLine()
+            .AppendLine("--" + batchBoundary)
+            .AppendLine("Content-Type: application/http")
+            .AppendLine("Content-Transfer-Encoding: binary")
+            .AppendLine()
+            .AppendLine("GET /ODataV4/employee(2) HTTP/1.1")
+            .AppendLine()
+            .AppendLine("--" + batchBoundary + "--")
             .ToString();
 
-        var multipartContent = new MultipartContent("mixed", batchBoundary);
-        multipartContent.Add(new StringContent(batchContent));
+        var bytes = Encoding.UTF8.GetBytes(batchContent);
+        var stream = new MemoryStream(bytes);
+        httpContext.Request.Body = stream;
+        httpContext.Request.ContentLength = bytes.Length;
 
-        var request = new HttpRequestMessage(HttpMethod.Post, "/ODataV4/$batch");
-        request.Content = multipartContent;
-
-        _controller.ControllerContext.HttpContext.Request.Body = await request.Content.ReadAsStreamAsync();
-        _controller.ControllerContext.HttpContext.Request.ContentType = request.Content.Headers.ContentType.ToString();
+        _controller.ControllerContext.HttpContext = httpContext;
 
         // Act
-        var result = await _controller.BatchAsync(null);
+        var result = await _controller.BatchAsync();
 
         // Assert
-        var okResult = result as OkObjectResult;
-        Assert.NotNull(okResult);
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOf<BatchResult>(result);
     }
 }

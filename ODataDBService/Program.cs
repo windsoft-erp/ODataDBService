@@ -38,10 +38,12 @@ builder.Services.AddScoped<IODataV4Repository, ODataV4Repository>();
 // ODataV4: Request handlers and factory
 builder.Services.AddScoped<IODataRequestHandlerFactory, ODataRequestHandlerFactory>();
 builder.Services.AddScoped<IQueryRequestHandler, QueryRequestHandler>();
+builder.Services.AddScoped<IQueryByIdRequestHandler, QueryByIdRequestHandler>();
 builder.Services.AddScoped<IDeleteRequestHandler, DeleteRequestHandler>();
 builder.Services.AddScoped<IInsertRequestHandler, InsertRequestHandler>();
 builder.Services.AddScoped<IUpdateRequestHandler, UpdateRequestHandler>();
 builder.Services.AddScoped<IInvalidateCacheRequestHandler, InvalidateCacheRequestHandler>();
+builder.Services.AddScoped<IBatchRequestHandler, BatchRequestHandler>();
 
 // Swagger
 builder.Services.Configure<SwaggerGenOptions>(options =>

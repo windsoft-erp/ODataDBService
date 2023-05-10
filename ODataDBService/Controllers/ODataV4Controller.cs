@@ -169,9 +169,6 @@ public class ODataV4Controller : ControllerBase
     /// Use this endpoint to send a batch of OData requests to the server. Multiple requests can be included in the body
     /// of the HTTP request using the format of an OData batch request. The server processes each request and returns the
     /// response for each request in the batch.
-    ///
-    /// The <paramref name="content"/> parameter is a <see cref="MultipartContent"/> object that contains the batch requests.
-    ///
     /// Sample request:
     ///
     ///     POST /ODataV4/$batch
@@ -196,12 +193,11 @@ public class ODataV4Controller : ControllerBase
     ///
     /// Sample request will execute a batch with the specified ODataV4 commands.
     /// </remarks>
-    /// <param name="content">The <see cref="MultipartContent"/> object that contains the batch requests.</param>
     /// <returns>
     /// An <see cref="IActionResult"/> indicating the success or failure of the operation. The result will contain a list of
     /// objects each of which will contain the appropriate response for that specific batch operation.
     /// </returns>
     [HttpPost("$batch")]
-    public Task<IActionResult> BatchAsync([FromBody] MultipartContent? content) =>
+    public Task<IActionResult> BatchAsync() =>
         this.requestHandlerFactory.CreateBatchHandler().ProcessBatchRequestAsync(this.Request);
 }
