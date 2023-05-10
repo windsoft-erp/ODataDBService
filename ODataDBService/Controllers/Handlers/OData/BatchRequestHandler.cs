@@ -59,12 +59,19 @@ public class BatchRequestHandler : BaseRequestHandler, IBatchRequestHandler
 
             var responses = new List<BatchResponseItem>();
             var reader = new MultipartReader(batchBoundary, request.Body);
+            var requestCount = 0;
 
             while (await reader.ReadNextSectionAsync() is MultipartSection section)
             {
                 var subRequest = await this.CreateSubRequestAsync(request, section);
                 var subResponse = await this.ProcessSubRequestAsync(subRequest);
                 responses.Add(subResponse);
+                requestCount++;
+
+                if (requestCount > 30)
+                {
+                    return this.HandleBadRequest("API only supports a maximum of 30 requests in a batch.");
+                }
             }
 
             var response = new HttpResponseMessage(HttpStatusCode.OK);
