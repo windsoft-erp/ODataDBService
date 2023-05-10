@@ -31,6 +31,7 @@
     <EmbeddedResource Include="Scripts\Script0004-Create SP InsertOrderAndUpdateEmployee.sql" />
     <EmbeddedResource Include="Scripts\Script0005-Create Products.sql" />
     <EmbeddedResource Include="Scripts\Script0006-Create CustomerOrder.sql" />
+    <EmbeddedResource Include="Scripts\Script0007-Create SP GetEmployeesByCity.sql" />
   </ItemGroup>
 
   <ItemGroup>

@@ -9,5 +9,5 @@ namespace ODataDBService.Services;
 /// </summary>
 public interface ISqlCommandService
 {
-    Task<IEnumerable<T>> ExecuteStoredProcedureAsync<T>(string storedProcedureName, Dictionary<string, object?> parameters);
+    Task<IEnumerable<dynamic>> ExecuteStoredProcedureAsync(string storedProcedureName, Dictionary<string, object?> parameters);
 }

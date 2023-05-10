@@ -12,6 +12,39 @@ using Repositories;
 /// </summary>
 public class SqlCommandService : ISqlCommandService
 {
+    private static readonly Dictionary<string, (SqlDbType DbType, Type ClrType)> TypeMap = new()
+    {
+        { "bigint", (SqlDbType.BigInt, typeof(long)) },
+        { "binary", (SqlDbType.Binary, typeof(byte[])) },
+        { "bit", (SqlDbType.Bit, typeof(bool)) },
+        { "char", (SqlDbType.Char, typeof(string)) },
+        { "date", (SqlDbType.Date, typeof(DateTime)) },
+        { "datetime", (SqlDbType.DateTime, typeof(DateTime)) },
+        { "datetime2", (SqlDbType.DateTime2, typeof(DateTime)) },
+        { "datetimeoffset", (SqlDbType.DateTimeOffset, typeof(DateTimeOffset)) },
+        { "decimal", (SqlDbType.Decimal, typeof(decimal)) },
+        { "float", (SqlDbType.Float, typeof(double)) },
+        { "image", (SqlDbType.Image, typeof(byte[])) },
+        { "int", (SqlDbType.Int, typeof(int)) },
+        { "money", (SqlDbType.Money, typeof(decimal)) },
+        { "nchar", (SqlDbType.NChar, typeof(string)) },
+        { "ntext", (SqlDbType.NText, typeof(string)) },
+        { "numeric", (SqlDbType.Decimal, typeof(decimal)) },
+        { "nvarchar", (SqlDbType.NVarChar, typeof(string)) },
+        { "real", (SqlDbType.Real, typeof(float)) },
+        { "smalldatetime", (SqlDbType.SmallDateTime, typeof(DateTime)) },
+        { "smallint", (SqlDbType.SmallInt, typeof(short)) },
+        { "smallmoney", (SqlDbType.SmallMoney, typeof(decimal)) },
+        { "text", (SqlDbType.Text, typeof(string)) },
+        { "time", (SqlDbType.Time, typeof(TimeSpan)) },
+        { "timestamp", (SqlDbType.Timestamp, typeof(byte[])) },
+        { "tinyint", (SqlDbType.TinyInt, typeof(byte)) },
+        { "uniqueidentifier", (SqlDbType.UniqueIdentifier, typeof(Guid)) },
+        { "varbinary", (SqlDbType.VarBinary, typeof(byte[])) },
+        { "varchar", (SqlDbType.VarChar, typeof(string)) },
+        { "xml", (SqlDbType.Xml, typeof(string)) },
+    };
+
     private readonly ISqlCommandRepository repository;
 
     /// <summary>
@@ -24,22 +57,20 @@ public class SqlCommandService : ISqlCommandService
     }
 
     /// <summary>
-    /// Executes the specified stored procedure with the given parameters and returns the result as a collection of type <typeparamref name="T"/>.
     /// Validates that the provided parameters match the expected parameters of the stored procedure and throws exceptions if there are any mismatches or missing parameters.
     /// </summary>
-    /// <typeparam name="T">The type of object returned by the stored procedure.</typeparam>
     /// <param name="storedProcedureName">The name of the stored procedure to execute.</param>
     /// <param name="parameters">A dictionary of the parameters to pass to the stored procedure.</param>
-    /// <returns>A collection of objects of type <typeparamref name="T"/> returned by the stored procedure.</returns>
+    /// <returns>A collection of objects of dynamic type returned by the stored procedure.</returns>
     /// <exception cref="ArgumentNullException">Thrown if a required parameter is null.</exception>
     /// <exception cref="ArgumentException">Thrown if the provided parameters do not match the expected parameters of the stored procedure.</exception>
-    public async Task<IEnumerable<T>> ExecuteStoredProcedureAsync<T>(string storedProcedureName, Dictionary<string, object?> parameters)
+    public async Task<IEnumerable<dynamic>> ExecuteStoredProcedureAsync(string storedProcedureName, Dictionary<string, object?> parameters)
     {
         var expectedParameters = await this.repository.GetStoredProcedureParametersAsync(storedProcedureName);
 
         this.ValidateParameters(expectedParameters, parameters);
 
-        var result = await this.repository.ExecuteStoredProcedureAsync<T>(storedProcedureName, parameters);
+        var result = await this.repository.ExecuteStoredProcedureAsync(storedProcedureName, parameters);
 
         return result;
     }
@@ -59,49 +90,64 @@ public class SqlCommandService : ISqlCommandService
                 throw new ArgumentNullException(nameof(expectedParameter.Type));
             }
 
-            if (!parameters.TryGetValue(expectedParameter.Name, out var parameterValue))
+            if (!parameters.TryGetValue(expectedParameter.Name.Replace("@", string.Empty), out var parameterValue))
             {
                 throw new ArgumentException($"Procedure parameter '{expectedParameter.Name}' is missing.");
             }
 
             var expectedType = this.GetSqlDbType(expectedParameter.Type);
+            var clrType = this.GetClrType(expectedType);
             if (parameterValue == null)
             {
                 continue;
             }
 
-            var parameterType = this.GetSqlDbType(parameterValue);
-
-            // Validate the parameter value's type against the expected type
-            if (parameterType != expectedType)
+            // Convert the parameter value to the expected .NET type
+            var parameterType = parameterValue.GetType();
+            if (parameterType != clrType)
             {
-                throw new ArgumentException($"Procedure parameter '{expectedParameter.Name}' has an invalid type. Expected '{expectedParameter.Type}', but got '{parameterType}'.");
+                if (clrType == typeof(int) && parameterType == typeof(decimal))
+                {
+                    // Try to convert decimal to int
+                    var intValue = (int)(decimal)parameterValue;
+                    parameters[expectedParameter.Name.Replace("@", string.Empty)] = intValue;
+                }
+                else if (clrType == typeof(DateTime) && parameterType == typeof(string))
+                {
+                    // Try to convert string to DateTime
+                    var stringValue = (string)parameterValue;
+                    if (!DateTime.TryParse(stringValue, out var dateTimeValue))
+                    {
+                        throw new ArgumentException($"Cannot convert '{stringValue}' to DateTime for procedure parameter '{expectedParameter.Name}'.");
+                    }
+
+                    parameters[expectedParameter.Name.Replace("@", string.Empty)] = dateTimeValue;
+                }
+                else
+                {
+                    throw new ArgumentException($"Cannot convert '{parameterType}' to '{clrType}' for procedure parameter '{expectedParameter.Name}'.");
+                }
             }
         }
     }
 
-    private SqlDbType GetSqlDbType(object parameterValue)
-    {
-        return parameterValue switch
-        {
-            string _ => SqlDbType.NVarChar,
-            int _ => SqlDbType.Int,
-            decimal _ => SqlDbType.Decimal,
-            bool _ => SqlDbType.Bit,
-            null => SqlDbType.NVarChar,
-            _ => throw new ArgumentException($"Invalid parameter type: {parameterValue.GetType()}"),
-        };
-    }
-
     private SqlDbType GetSqlDbType(string type)
     {
-        return type.ToLowerInvariant() switch
+        if (TypeMap.TryGetValue(type.ToLowerInvariant(), out var values))
         {
-            "nvarchar" => SqlDbType.NVarChar,
-            "int" => SqlDbType.Int,
-            "decimal" => SqlDbType.Decimal,
-            "bit" => SqlDbType.Bit,
-            _ => throw new ArgumentException($"Invalid SQL type: {type}"),
-        };
+            return values.DbType;
+        }
+
+        throw new ArgumentException($"Invalid SQL type: {type}");
+    }
+
+    private Type GetClrType(SqlDbType dbType)
+    {
+        if (TypeMap.ContainsValue((dbType, typeof(object))))
+        {
+            throw new NotSupportedException("Table-valued parameters are not supported.");
+        }
+
+        return TypeMap.Values.FirstOrDefault(v => v.DbType == dbType).ClrType;
     }
 }

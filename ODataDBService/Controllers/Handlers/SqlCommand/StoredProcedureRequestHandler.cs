@@ -4,9 +4,9 @@
 // </copyright>
 
 namespace ODataDBService.Controllers.Handlers.SqlCommand;
+using System.Data.SqlClient;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
-using OData;
 using Services;
 
 /// <summary>
@@ -22,7 +22,7 @@ public class StoredProcedureRequestHandler : BaseRequestHandler, IStoredProcedur
     /// <param name="logger">The logger instance.</param>
     /// <param name="commandService">The SQL command service.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="commandService"/> is null.</exception>
-    public StoredProcedureRequestHandler(ILogger<InvalidateCacheRequestHandler> logger, ISqlCommandService commandService)
+    public StoredProcedureRequestHandler(ILogger<StoredProcedureRequestHandler> logger, ISqlCommandService commandService)
         : base(logger)
     {
         this.commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
@@ -38,19 +38,27 @@ public class StoredProcedureRequestHandler : BaseRequestHandler, IStoredProcedur
     {
         try
         {
-            var result = await this.commandService.ExecuteStoredProcedureAsync<IEnumerable<dynamic>>(storedProcedureName, ConvertJsonToDictionary(procedureParameters));
+            var result = await this.commandService.ExecuteStoredProcedureAsync(storedProcedureName, ConvertJsonToDictionary(procedureParameters));
 
             if (!result.Any())
             {
-                return this.HandleNotFound($"Did not retrieve any results from stored procedure '{storedProcedureName}'");
+                return this.HandleSuccess($"Did not retrieve any results from stored procedure '{storedProcedureName}'");
             }
 
-            return this.HandleSuccess($"Successfully ran stored procude '{storedProcedureName}'");
+            return this.HandleSuccess($"Successfully ran stored procude '{storedProcedureName}'", result);
         }
         catch (Exception ex)
         {
-            var errorMessage = $"Error running stored procedure '{storedProcedureName}'";
-            return this.HandleError(errorMessage, ex);
+            return ex switch
+            {
+                SqlException sqlEx when sqlEx.Message.Contains($"Could not find stored procedure '{storedProcedureName}'")
+                    => this.HandleNotFound($"Could not find stored procedure: {storedProcedureName}."),
+                SqlException sqlEx when !sqlEx.Message.Contains("A network-related or instance-specific error occurred ")
+                    => this.HandleBadRequest($"The stored procedure '{storedProcedureName}' has thrown an error."),
+                ArgumentException argEx when argEx.Message.Contains("Cannot convert")
+                    => this.HandleBadRequest("Corrupted data: " + ex.Message),
+                _ => this.HandleError($"Error running stored procedure '{storedProcedureName}'.", ex),
+            };
         }
     }
 

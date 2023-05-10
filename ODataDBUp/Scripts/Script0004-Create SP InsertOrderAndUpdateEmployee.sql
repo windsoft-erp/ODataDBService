@@ -19,7 +19,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM [dbo].[Employees] WHERE [EmployeeID] = @EmployeeID)
     BEGIN
         RAISERROR('Employee not found.', 16, 1)
-        RETURN
+        RETURN;    
     END
 
     -- Insert the order
@@ -30,5 +30,6 @@ BEGIN
     UPDATE [dbo].[Employees]
     SET [TotalOrders] = [TotalOrders] + 1
     WHERE [EmployeeID] = @EmployeeID
+
 END
 GO
