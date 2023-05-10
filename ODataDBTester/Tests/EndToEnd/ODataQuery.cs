@@ -17,7 +17,7 @@ using Microsoft.Extensions.Primitives;
 namespace ODataDBTester.Tests.EndToEnd
 {
     [TestFixture]
-    public class ODataQueryTests
+    public class ODataQuery
     {
         private ODataV4Repository _oDataV4Repository;
         private ODataV4Service _oDataV4Service;

@@ -17,7 +17,7 @@ using SqlKata.Compilers;
 
 namespace ODataDBTester.Tests.EndToEnd;
 
-public class ODataBatchTests
+public class ODataBatch
 {
     private ODataV4Repository _oDataV4Repository;
     private ODataV4Service _oDataV4Service;

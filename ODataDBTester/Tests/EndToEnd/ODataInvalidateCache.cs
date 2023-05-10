@@ -16,7 +16,7 @@ using SqlKata.Compilers;
 
 namespace ODataDBTester.Tests.EndToEnd;
 
-public class ODataDeleteTests
+public class ODataInvalidateCache
 {
     private ODataV4Repository _oDataV4Repository;
     private ODataV4Service _oDataV4Service;
@@ -36,7 +36,8 @@ public class ODataDeleteTests
         _oDataV4Service = new ODataV4Service(_oDataV4Repository);
         var loggerInsert = Mock.Of<ILogger<InsertRequestHandler>>();
         var loggerDelete = Mock.Of<ILogger<DeleteRequestHandler>>();
-
+        var loggerCache =  Mock.Of<ILogger<InvalidateCacheRequestHandler>>();
+        
         var requestHandlerFactoryMock = new Mock<IODataRequestHandlerFactory>();
 
         var urlHelperMock = new Mock<IUrlHelper>();
@@ -49,9 +50,12 @@ public class ODataDeleteTests
 
         requestHandlerFactoryMock.Setup(factory => factory.CreateInsertHandler()).Returns(
             new InsertRequestHandler(loggerInsert, _oDataV4Service));
-
+        
         requestHandlerFactoryMock.Setup(factory => factory.CreateDeleteHandler()).Returns(
             new DeleteRequestHandler(loggerDelete, _oDataV4Service));
+        
+        requestHandlerFactoryMock.Setup(factory => factory.CreateInvalidateCacheHandler()).Returns(
+            new InvalidateCacheRequestHandler(loggerCache, _oDataV4Repository));
 
         _controller = new ODataV4Controller(requestHandlerFactoryMock.Object);
         _controller.ControllerContext = new ControllerContext
@@ -61,7 +65,7 @@ public class ODataDeleteTests
     }
     
     [Test]
-    public async Task DeleteAsync_ValidData_ShouldReturnOk()
+    public async Task InvalidateCache_WithValidData_ShouldReturnOkResult()
     {
         // Arrange
         var expectedId = new Random().Next(1000, 5000);
@@ -73,6 +77,11 @@ public class ODataDeleteTests
         var expectedCity = "New York";
         var expectedCountry = "USA";
         var expectedTotalOrders = 0;
+        
+        var expected = new List<object>
+        {
+            new Dictionary<string, object> {{"EmployeeID", expectedId}, {"FirstName", "John"}, {"LastName", "Doe"}, {"Title", "Developer"}, {"BirthDate", new DateTime(1990, 1, 1)}, {"HireDate", new DateTime(2022, 1, 1)}, {"City", "New York"}, {"Country", "USA"}, {"TotalOrders", 0}}
+        };
 
         var newEmployeeJson = @$"
         {{
@@ -92,53 +101,28 @@ public class ODataDeleteTests
         _controller.HttpContext.Request.Body = stream;
         
         // Act
-        await _controller.PostAsync("Employees", jsonDoc.RootElement);
+        var result = await _controller.PostAsync("Employees", jsonDoc.RootElement);
 
         // Assert
-        var result = await _controller.DeleteAsync("Employees", expectedId.ToString());
-        var deleteResult = result as OkResult;
-        Assert.NotNull(deleteResult);
+        var createdResult = result as CreatedResult;
+        Assert.NotNull(createdResult);
+        Assert.That(createdResult.StatusCode, Is.EqualTo(201));
+        Assert.That(createdResult.Value, Is.EqualTo(expected));
+
+        result = _controller.InvalidateTableInfoCache("Employees");
+        var okObject = result as OkResult;
+        Assert.NotNull(okObject);
+        // Cleanup
+        await _controller.DeleteAsync("Employees", expectedId.ToString());
     }
-    
-    [Test]
-    public async Task DeleteAsync_InvalidId_ShouldReturnNotFound()
-    {
-        // Arrange
-        var tableName = "Employees";
-        var expectedId = new Random().Next(1000, 5000);
 
-        // Assert
-        var result = await _controller.DeleteAsync(tableName, expectedId.ToString());
+    [Test]
+    public async Task InvalidateCache_WithInvalidTable_ShouldReturnNotFound()
+    {
+        var tableName = "WhatTableIsThis";
+        var result = _controller.InvalidateTableInfoCache(tableName);
         var notFoundObjectResult = result as NotFoundObjectResult;
         Assert.NotNull(notFoundObjectResult);
-        Assert.That(notFoundObjectResult.Value, Is.EqualTo($"Could not retrieve record with key '{expectedId.ToString()}' from table '{tableName}' for deletion."));
-    }
-    
-    [Test]
-    public async Task DeleteAsync_InvalidIdDataType_ShouldReturnNotFound()
-    {
-        // Arrange
-        var tableName = "Employees";
-        var expectedId = "Hello";
-
-        // Assert
-        var result = await _controller.DeleteAsync(tableName, expectedId.ToString());
-        var BadRequestObjectResult = result as BadRequestObjectResult;
-        Assert.NotNull(BadRequestObjectResult);
-        Assert.That(BadRequestObjectResult.Value, Is.EqualTo($"Could not retrieve record with requested data type, key '{expectedId}' from table '{tableName}'."));
-    }
-    
-    [Test]
-    public async Task DeleteAsync_InvalidTable_ShouldReturnNotFound()
-    {
-        // Arrange
-        var tableName = "FakeTable";
-        var expectedId = new Random().Next(1000, 5000);
-
-        // Assert
-        var result = await _controller.DeleteAsync(tableName, expectedId.ToString());
-        var notFoundObjectResult = result as NotFoundObjectResult;
-        Assert.NotNull(notFoundObjectResult);
-        Assert.That(notFoundObjectResult.Value, Is.EqualTo($"Could not retrieve table '{tableName}' with primary key of requested data type."));
+        Assert.That(notFoundObjectResult.Value, Is.EqualTo($"Table info '{tableName}' not found in the cache."));
     }
 }

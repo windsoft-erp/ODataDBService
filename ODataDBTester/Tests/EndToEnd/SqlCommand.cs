@@ -11,7 +11,7 @@ using ODataDBService.Services.Repositories;
 
 namespace ODataDBTester.Tests.EndToEnd;
 
-public class SqlCommandTests
+public class SqlCommand
 {
     private SqlCommandRepository _sqlCommandRepository;
     private SqlCommandService _sqlCommandService;
@@ -36,7 +36,7 @@ public class SqlCommandTests
         // arrange
         var procedureParameters = new
         {
-            EmployeeID = 1,
+            EmployeeID = 15,
             OrderDate = new DateTime(2023, 05, 10),
             ShipName = "Test Ship Name",
             ShipCity = "Test Ship City",

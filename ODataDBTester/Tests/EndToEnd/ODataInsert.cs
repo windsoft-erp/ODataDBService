@@ -18,7 +18,7 @@ using SqlKata.Compilers;
 namespace ODataDBTester.Tests.EndToEnd;
 
 [TestFixture]
-public class ODataInsertTests
+public class ODataInsert
 {
     private ODataV4Repository _oDataV4Repository;
     private ODataV4Service _oDataV4Service;

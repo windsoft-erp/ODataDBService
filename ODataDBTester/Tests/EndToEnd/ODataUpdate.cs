@@ -16,7 +16,7 @@ using SqlKata.Compilers;
 
 namespace ODataDBTester.Tests.EndToEnd;
 
-public class ODataUpdateTests
+public class ODataUpdate
 { 
     private ODataV4Repository _oDataV4Repository;
     private ODataV4Service _oDataV4Service;
