@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using ODataDBService.Controllers;
-using ODataDBService.Controllers.Handlers.OData;
 using ODataDBService.Controllers.Handlers.SqlCommand;
 using ODataDBService.Services;
 using ODataDBService.Services.Repositories;
