@@ -33,7 +33,7 @@ builder.Services.AddSingleton<Compiler>(new SqlServerCompiler { UseLegacyPaginat
 
 // ODataV4: Service and repository
 builder.Services.AddScoped<IODataV4Service, ODataV4Service>();
-builder.Services.AddScoped<IODataV4Repository, ODataV4Repository>();
+builder.Services.AddSingleton<IODataV4Repository, ODataV4Repository>();
 
 // ODataV4: Request handlers and factory
 builder.Services.AddScoped<IODataRequestHandlerFactory, ODataRequestHandlerFactory>();
