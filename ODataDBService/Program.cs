@@ -33,7 +33,15 @@ builder.Services.AddSingleton<Compiler>(new SqlServerCompiler { UseLegacyPaginat
 
 // ODataV4: Service and repository
 builder.Services.AddScoped<IODataV4Service, ODataV4Service>();
-builder.Services.AddSingleton<IODataV4Repository, ODataV4Repository>();
+builder.Services.AddSingleton<IODataV4Repository>(sp =>
+{
+    // Resolve the scoped dependency within the factory method
+    var odataToSqlConverter = sp.GetRequiredService<IODataToSqlConverter>();
+    var configuration = sp.GetRequiredService<IConfiguration>();
+
+    // Create an instance of ODataV4Repository and pass the resolved scoped dependency
+    return new ODataV4Repository(configuration, odataToSqlConverter);
+});
 
 // ODataV4: Request handlers and factory
 builder.Services.AddScoped<IODataRequestHandlerFactory, ODataRequestHandlerFactory>();
