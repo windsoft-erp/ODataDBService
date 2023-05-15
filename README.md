@@ -30,7 +30,7 @@ The `ODataDBService` project is the main project in the solution that provides t
 - `DELETE /ODataV4/{tableName}({key})`: Delete a record from a table using its key.
 - `POST /ODataV4/{tableName}`: Insert a new record into a table.
 - `PUT /ODataV4/{tableName}({key})`: Update an existing record in a table using its key.
-- `POST /ODataV4/invalidate-cache/{tableName}`: Invalidate the table info cache for a specific table.
+- `DELETE /ODataV4/invalidate-cache/{tableName}`: Invalidate the table info cache for a specific table.
 - `POST /SQLCommand/{storedProcedureName}`: Execute SQL stored procedure directly against the database
 
 ### ODataDBUp
