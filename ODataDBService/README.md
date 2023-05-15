@@ -7,6 +7,7 @@ An ASP.NET Core API project that provides a simple ODataV4 service using MSSQL S
 - Visual Studio
 - Docker
 - MSSQL Server
+- .NET Core 6 https://dotnet.microsoft.com/en-us/download/dotnet/6.0
 
 ## Getting Started
 
