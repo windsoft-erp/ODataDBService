@@ -41,11 +41,12 @@ The ODataDBService project uses the `appsettings.json` configuration file to spe
 
 ## Deployment with Docker
 
-1. Open a terminal or command prompt.
-2. Change the working directory to the root of the project.
-3. Run `docker build -t odatadbapi .` to build the Docker image.
-4. Run `docker run -d -p 8080:80 --name odatadbapi odatadbapi` to start a container with the built image.
-5. Access the API at `http://localhost:8080`.
+1. Make sure you have Docker installed.
+2. Open a terminal or command prompt.
+3. Change the working directory to the root of the project.
+4. Run `docker build -t odatadbapi .` to build the Docker image.
+5. Run `docker run -d -p 8080:80 --name odatadbapi odatadbapi` to start a container with the built image.
+6. Access the API at `http://localhost:8080`.
 
 ## Contributing
 
