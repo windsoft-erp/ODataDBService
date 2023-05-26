@@ -25,8 +25,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // OData-related services
-builder.Services.AddScoped<IODataToSqlConverter, ODataToSqlConverter>();
-builder.Services.AddScoped<IEdmModelBuilder, EdmModelBuilder>();
+builder.Services.AddSingleton<IODataToSqlConverter, ODataToSqlConverter>();
+builder.Services.AddSingleton<IEdmModelBuilder, EdmModelBuilder>();
 
 // SqlKata compiler
 builder.Services.AddSingleton<Compiler>(new SqlServerCompiler { UseLegacyPagination = false });

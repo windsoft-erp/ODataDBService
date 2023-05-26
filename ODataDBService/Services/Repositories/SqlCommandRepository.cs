@@ -32,7 +32,7 @@ public class SqlCommandRepository : ISqlCommandRepository
     /// <returns>An <see cref="IEnumerable{dynamic}"/> containing the objects returned by the stored procedure.</returns>
     public async Task<IEnumerable<dynamic>> ExecuteStoredProcedureAsync(string storedProcedureName, Dictionary<string, object?>? parameters = null)
     {
-        using (var connection = new SqlConnection(this.connectionString))
+        await using (var connection = new SqlConnection(this.connectionString))
         {
             connection.Open();
             return await connection.QueryAsync<dynamic>(storedProcedureName, parameters, commandType: CommandType.StoredProcedure);
@@ -46,7 +46,7 @@ public class SqlCommandRepository : ISqlCommandRepository
     /// <returns>An <see cref="IEnumerable{T}"/> containing the parameters of the stored procedure.</returns>
     public async Task<IEnumerable<StoredProcedureParameter>> GetStoredProcedureParametersAsync(string storedProcedureName)
     {
-        using (var connection = new SqlConnection(this.connectionString))
+        await using (var connection = new SqlConnection(this.connectionString))
         {
             connection.Open();
             var parameters = await connection.QueryAsync<StoredProcedureParameter>(
