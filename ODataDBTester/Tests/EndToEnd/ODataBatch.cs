@@ -110,18 +110,9 @@ public class ODataBatch
         var result = await _controller.BatchAsync();
 
         // Assert
-        Console.WriteLine("After Assert.IsNotNull(result)");
-        Console.WriteLine($"result: {result}");
-
+        Assert.IsNotNull(result);
         Assert.IsInstanceOf<OkObjectResult>(result);
-        Console.WriteLine("After Assert.IsInstanceOf<OkObjectResult>(result)");
-
         var okObject = result as OkObjectResult;
-        Console.WriteLine($"okObject: {okObject}");
-
         Assert.IsInstanceOf<BatchResult>(okObject.Value);
-        Console.WriteLine("After Assert.IsInstanceOf<BatchResult>(okObject.Value)");
-
-
     }
 }
