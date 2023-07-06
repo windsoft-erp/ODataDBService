@@ -66,7 +66,9 @@ public abstract class BaseRequestHandler
 
         if (!File.Exists(filePath))
         {
-            using (FileStream fs = File.Create(filePath)) { }
+            using (FileStream fs = File.Create(filePath))
+            {
+            }
         }
 
         using (StreamWriter writer = new StreamWriter(filePath, appendToFile))
