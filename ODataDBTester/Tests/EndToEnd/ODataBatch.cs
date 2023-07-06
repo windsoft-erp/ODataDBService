@@ -84,19 +84,19 @@ public class ODataBatch
         httpContext.Request.Method = "POST";
 
         var batchContent = new StringBuilder()
-            .AppendLine("--" + batchBoundary)
-            .AppendLine("Content-Type: application/http")
-            .AppendLine("Content-Transfer-Encoding: binary")
-            .AppendLine()
-            .AppendLine("GET /ODataV4/Employees(1) HTTP/1.1")
-            .AppendLine()
-            .AppendLine("--" + batchBoundary)
-            .AppendLine("Content-Type: application/http")
-            .AppendLine("Content-Transfer-Encoding: binary")
-            .AppendLine()
-            .AppendLine("GET /ODataV4/Employees(2) HTTP/1.1")
-            .AppendLine()
-            .AppendLine("--" + batchBoundary + "--")
+            .Append("--" + batchBoundary).Append("\r\n")
+            .Append("Content-Type: application/http").Append("\r\n")
+            .Append("Content-Transfer-Encoding: binary").Append("\r\n")
+            .Append("\r\n")
+            .Append("GET /ODataV4/Employees(1) HTTP/1.1").Append("\r\n")
+            .Append("\r\n")
+            .Append("--" + batchBoundary).Append("\r\n")
+            .Append("Content-Type: application/http").Append("\r\n")
+            .Append("Content-Transfer-Encoding: binary").Append("\r\n")
+            .Append("\r\n")
+            .Append("GET /ODataV4/Employees(2) HTTP/1.1").Append("\r\n")
+            .Append("\r\n")
+            .Append("--" + batchBoundary + "--").Append("\r\n")
             .ToString();
 
         var bytes = Encoding.UTF8.GetBytes(batchContent);

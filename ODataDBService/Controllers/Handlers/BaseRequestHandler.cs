@@ -60,24 +60,6 @@ public abstract class BaseRequestHandler
     /// <returns>The action result.</returns>
     protected IActionResult HandleError(string message, Exception ex, params object[] args)
     {
-        // Log the exception and message to a file
-        string filePath = "error.log";
-        bool appendToFile = true;
-
-        if (!File.Exists(filePath))
-        {
-            using (FileStream fs = File.Create(filePath))
-            {
-            }
-        }
-
-        using (StreamWriter writer = new StreamWriter(filePath, appendToFile))
-        {
-            writer.WriteLine($"Error: {message}");
-            writer.WriteLine($"Exception: {ex}");
-            writer.WriteLine();
-        }
-
         this.logger.LogError(ex, message, args);
         return new StatusCodeResult(StatusCodes.Status500InternalServerError);
     }
