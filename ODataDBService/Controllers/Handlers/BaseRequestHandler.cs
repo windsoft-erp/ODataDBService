@@ -61,6 +61,10 @@ public abstract class BaseRequestHandler
     protected IActionResult HandleError(string message, Exception ex, params object[] args)
     {
         this.logger.LogError(ex, message, args);
+
+        // For debugging tests in linux, PLEASE delete the console.writelines
+        Console.WriteLine(message);
+        Console.WriteLine(ex);
         return new StatusCodeResult(StatusCodes.Status500InternalServerError);
     }
 
